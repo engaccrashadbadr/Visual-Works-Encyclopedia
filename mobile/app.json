@@ -2,6 +2,7 @@
   "expo": {
     "name": "Visual Works Encyclopedia",
     "slug": "visual-works-encyclopedia",
+    "owner": "remas007s-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -15,13 +16,22 @@
     "android": {
       "package": "com.engaccrashadbadr.visualworks",
       "versionCode": 1,
-      "permissions": ["INTERNET"],
+      "permissions": [
+        "INTERNET"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": false,
-          "category": ["BROWSABLE", "DEFAULT"],
-          "data": [{ "scheme": "visualworks" }]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "scheme": "visualworks"
+            }
+          ]
         }
       ]
     },
@@ -29,7 +39,10 @@
       "bundleIdentifier": "com.engaccrashadbadr.visualworks"
     },
     "extra": {
-      "webAppUrl": "https://visualworks-cnmtcefg.manus.space"
+      "webAppUrl": "https://visualworks-cnmtcefg.manus.space",
+      "eas": {
+        "projectId": "6175a838-18e5-47d0-9d10-a04858a1c45d"
+      }
     }
   }
 }
