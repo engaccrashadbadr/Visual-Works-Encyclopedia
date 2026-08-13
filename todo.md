@@ -8,7 +8,7 @@
 - [x] Add Arabic/English language switching, RTL support, dark/light theme, and accessible responsive layout.
 - [x] Add AI assistant UI and server procedure for questions, recommendations, and Arabic summary translation.
 - [x] Add AniList and TMDB synchronization adapters and safe upsert/deduplication logic.
-- [ ] Add periodic synchronization through the project heartbeat with an admin-visible sync status.
+- [x] Add periodic synchronization through the project heartbeat with an admin-visible sync status.
 - [x] Add S3 image upload and metadata handling for works, characters, and units.
 - [x] Add admin-only CRUD procedures and dashboard for works, characters, and units.
 - [x] Add vitest coverage for core database/query behavior and AI/sync validation paths.
