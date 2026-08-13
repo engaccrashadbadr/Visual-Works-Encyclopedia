@@ -86,3 +86,7 @@
 - [ ] Add branded Android icon and splash assets before store distribution.
 - [x] Attempt an authenticated EAS preview APK build using the available project session.
 - [x] If EAS authentication is unavailable, document the exact blocking step and preserve the validated local Android export.
+- [x] Remove public login prompts and OAuth entry points from the web and Expo app experience.
+- [x] Keep admin, sync, upload, and write mutations protected by server-side authorization.
+- [x] Add tests proving public routes do not require login and admin mutations remain protected.
+- [x] Verify the public web app and mobile wrapper build without a login screen.
