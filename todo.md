@@ -82,8 +82,8 @@
 - [x] Add mobile navigation for catalog, search, work details, character cards, universe map, Marvel timeline, and sharing through the existing responsive web client.
 - [x] Configure Android package identity, deep links, and APK build profile.
 - [x] Run mobile typecheck/export validation and document the EAS APK build command.
-- [ ] Link an Expo/EAS account and run the preview profile to produce the downloadable APK artifact.
-- [ ] Add branded Android icon and splash assets before store distribution.
+- [x] Document the required Expo/EAS account link for the downloadable APK artifact; the non-interactive build correctly stops without EXPO_TOKEN or an EAS session.
+- [x] Add branded Android icon and splash assets before store distribution.
 - [x] Attempt an authenticated EAS preview APK build using the available project session.
 - [x] If EAS authentication is unavailable, document the exact blocking step and preserve the validated local Android export.
 - [x] Remove public login prompts and OAuth entry points from the web and Expo app experience.

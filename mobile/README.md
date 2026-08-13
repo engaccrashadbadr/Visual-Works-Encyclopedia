@@ -16,7 +16,7 @@ pnpm start
 
 ## إنشاء APK تجريبي
 
-ثبّت أداة EAS وسجّل الدخول إلى حساب Expo الخاص بك:
+ثبّت أداة EAS وسجّل الدخول إلى حساب Expo الخاص بك. **مصادقة Expo مطلوبة ولا يمكن تجاوزها**؛ وقد تم التحقق من أن أمر البناء غير التفاعلي يتوقف برسالة `An Expo user account is required to proceed` إذا لم توجد جلسة EAS أو المتغير `EXPO_TOKEN`:
 
 ```bash
 cd mobile
@@ -25,7 +25,14 @@ pnpm dlx eas-cli build:configure
 pnpm build:apk
 ```
 
-ملف `eas.json` يضبط ملف `preview` ليُنتج APK داخليًا قابلًا للتثبيت والمشاركة. بعد انتهاء البناء يعرض EAS رابط تنزيل الملف. لا يحتاج هذا المسار إلى مفتاح API داخل التطبيق.
+وفي بيئة CI يمكن استخدام رمز وصول محفوظ خارج المستودع:
+
+```bash
+export EXPO_TOKEN="ضع رمز Expo في مدير الأسرار فقط"
+pnpm dlx eas-cli build --platform android --profile preview --non-interactive
+```
+
+ملف `eas.json` يضبط ملف `preview` ليُنتج APK داخليًا قابلًا للتثبيت والمشاركة. بعد انتهاء البناء يعرض EAS رابط تنزيل الملف. لا يحتاج هذا المسار إلى مفتاح API داخل التطبيق، ولا يجب حفظ `EXPO_TOKEN` في Git أو ملفات `.env` المرفوعة.
 
 ## روابط المشاركة
 
@@ -41,7 +48,7 @@ visualworks://universe?universe=789&character=456
 
 ## إعداد الإصدار الإنتاجي
 
-قبل رفع التطبيق إلى Google Play، غيّر `android.versionCode` في `app.json` مع كل إصدار، وأضف أيقونة وsplash screen خاصين بالعلامة التجارية، ثم استخدم:
+قبل رفع التطبيق إلى Google Play، غيّر `android.versionCode` في `app.json` مع كل إصدار. الأيقونة وشاشة البداية موجودتان في `mobile/assets/` ومربوطتان في `app.json`. بعد تسجيل الدخول إلى EAS استخدم:
 
 ```bash
 cd mobile
