@@ -1,42 +1,19 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import Home from "./pages/Home";
+import SearchPage from "./pages/SearchPage";
+import WorkPage from "./pages/WorkPage";
+import AssistantPage from "./pages/AssistantPage";
+import EntityPage from "./pages/EntityPage";
+import ComparePage from "./pages/ComparePage";
+import SettingsPage from "./pages/SettingsPage";
+import AdminPage from "./pages/AdminPage";
+import NotFound from "./pages/NotFound";
 
-function Router() {
-  // make sure to consider if you need authentication for certain routes
-  return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+function Router() { return <Switch><Route path="/" component={Home}/><Route path="/search" component={SearchPage}/><Route path="/work/:id" component={WorkPage}/><Route path="/assistant" component={AssistantPage}/><Route path="/entity/:id" component={EntityPage}/><Route path="/compare" component={ComparePage}/><Route path="/settings" component={SettingsPage}/><Route path="/admin" component={AdminPage}/><Route path="/404" component={NotFound}/><Route component={NotFound}/></Switch>; }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
-  );
-}
-
-export default App;
+export default function App() { return <ErrorBoundary><LanguageProvider><ThemeProvider defaultTheme="dark" switchable><TooltipProvider><Toaster/><Router/></TooltipProvider></ThemeProvider></LanguageProvider></ErrorBoundary>; }

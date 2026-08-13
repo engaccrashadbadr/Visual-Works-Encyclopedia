@@ -1,33 +1,54 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useMemo, useState } from "react";
+import { Link } from "wouter";
+import { Search, Moon, Sun, Globe2, Sparkles, ArrowUpRight, Play, Layers3, Bot, BookOpen, Star } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useLocation } from "wouter";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const fallback = [
+  { id: 1, title: "Mobile Suit Gundam", titleAr: "موبايل سوت غاندام", type: "anime", releaseYear: 1979, studio: "Sunrise", score: "8.7", summary: "A landmark space opera about war, identity, and the cost of progress.", coverImageUrl: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&w=900&q=80", popularity: 99 },
+  { id: 2, title: "Cowboy Bebop", titleAr: "كاوبوي بيبوب", type: "anime", releaseYear: 1998, studio: "Sunrise", score: "8.8", summary: "Bounty hunters drift through a jazz-soaked solar system haunted by the past.", coverImageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=900&q=80", popularity: 96 },
+  { id: 3, title: "The Matrix", titleAr: "ذا ماتريكس", type: "film", releaseYear: 1999, studio: "Warner Bros.", score: "8.7", summary: "A hacker discovers that reality is a system designed to keep humanity asleep.", coverImageUrl: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=80", popularity: 94 },
+  { id: 4, title: "Arcane", titleAr: "أركين", type: "series", releaseYear: 2021, studio: "Fortiche", score: "9.0", summary: "Two sisters find themselves on rival sides of a conflict between cities.", coverImageUrl: "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=900&q=80", popularity: 92 },
+];
+
+const labels: Record<string, { en: string; ar: string }> = { all: { en: "All works", ar: "كل الأعمال" }, anime: { en: "Anime", ar: "أنمي" }, film: { en: "Films", ar: "أفلام" }, series: { en: "Series", ar: "مسلسلات" }, ova: { en: "OVA", ar: "OVA" } };
+
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const [, navigate] = useLocation();
+  const { theme, toggleTheme } = useTheme();
+  const { lang, toggleLang } = useLanguage();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("all");
+  const home = trpc.catalog.home.useQuery();
+  const data = home.data?.featured?.length ? home.data.featured : fallback;
+  const visible = useMemo(() => category === "all" ? data : data.filter(item => item.type === category), [category, data]);
+  const t = (en: string, ar: string) => lang === "ar" ? ar : en;
+  const submit = (e: React.FormEvent) => { e.preventDefault(); navigate(`/search?q=${encodeURIComponent(query)}&type=${category}`); };
 
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  return <div dir={lang === "ar" ? "rtl" : "ltr"} className="min-h-screen bg-background text-foreground">
+    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+      <div className="container flex h-20 items-center justify-between gap-5">
+        <Link href="/" className="flex items-center gap-3 shrink-0"><div className="brand-mark"><Layers3 size={20}/></div><div><div className="font-display text-lg font-bold tracking-tight">Visual Works</div><div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Encyclopedia</div></div></Link>
+        <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex"><Link href="/search" className="hover:text-foreground transition-colors">{t("Explore", "استكشف")}</Link><a href="#franchises" className="hover:text-foreground transition-colors">{t("Franchises", "الامتيازات")}</a><a href="#assistant" className="hover:text-foreground transition-colors">{t("AI Assistant", "مساعد AI")}</a></nav>
+        <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={() => toggleLang()} aria-label="Change language"><Globe2 size={18}/><span className="sr-only">Language</span></Button><Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">{theme === "dark" ? <Sun size={18}/> : <Moon size={18}/>}</Button><Button className="hidden rounded-full px-5 sm:inline-flex" onClick={() => navigate("/search")}>{t("Browse catalog", "تصفح الكتالوج")} <ArrowUpRight size={16}/></Button></div>
+      </div>
+    </header>
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+    <main>
+      <section className="hero-shell"><div className="container grid items-center gap-14 py-20 lg:grid-cols-[1.1fr_.9fr] lg:py-28"><div><Badge variant="outline" className="mb-6 rounded-full border-primary/30 bg-primary/5 px-4 py-1.5 text-primary"><Sparkles size={14} className="me-2"/>{t("A visual index for stories worth remembering", "فهرس بصري للقصص التي تستحق أن تُحفظ")}</Badge><h1 className="font-display max-w-3xl text-5xl font-black leading-[1.03] tracking-[-0.04em] sm:text-6xl lg:text-7xl">{t("Every universe. Every character. One clear canon.", "كل عالم. كل شخصية. خط زمني واضح واحد.")}</h1><p className="mt-7 max-w-xl text-lg leading-8 text-muted-foreground">{t("Explore the worlds behind anime, films, series, and OVAs. Follow the order, meet the cast, compare the units, and ask the archive.", "استكشف العوالم خلف الأنمي والأفلام والمسلسلات وأعمال OVA. تابع الترتيب، تعرّف على الشخصيات، قارن الوحدات، واسأل الأرشيف.")}</p><form onSubmit={submit} className="mt-9 flex max-w-2xl items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-2xl shadow-primary/5"><Search className="ms-3 text-muted-foreground" size={20}/><Input value={query} onChange={e => setQuery(e.target.value)} placeholder={t("Search works, characters, units...", "ابحث عن عمل أو شخصية أو وحدة...")} className="h-12 border-0 bg-transparent shadow-none focus-visible:ring-0"/><Button type="submit" className="h-12 rounded-xl px-5">{t("Search", "بحث")}</Button></form><div className="mt-6 flex flex-wrap gap-2">{["Gundam", "One Piece", "Dune", "Evangelion"].map(x => <button key={x} onClick={() => { setQuery(x); navigate(`/search?q=${x}`); }} className="rounded-full border border-border/70 px-3 py-1.5 text-xs text-muted-foreground transition hover:border-primary hover:text-primary">{x}</button>)}</div></div><div className="relative mx-auto w-full max-w-lg"><div className="hero-orbit orbit-one"/><div className="hero-orbit orbit-two"/><div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950 p-3 shadow-2xl shadow-indigo-950/30"><img src={fallback[0].coverImageUrl} className="h-[430px] w-full rounded-[1.5rem] object-cover opacity-90" alt="Featured visual work"/><div className="absolute inset-x-8 bottom-8 rounded-2xl border border-white/15 bg-slate-950/70 p-5 text-white backdrop-blur-md"><div className="mb-2 flex items-center justify-between"><Badge className="bg-primary text-primary-foreground">{t("Featured universe", "عالم مميز")}</Badge><span className="flex items-center gap-1 text-sm"><Star size={14} className="fill-amber-400 text-amber-400"/> 8.7</span></div><div className="font-display text-2xl font-bold">Universal timelines</div><p className="mt-1 text-sm text-white/65">{t("From first contact to final arc.", "من أول لقاء إلى آخر فصل.")}</p></div></div></div></div></section>
+
+      <section className="container py-16"><div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow">01 / {t("The archive", "الأرشيف")}</p><h2 className="section-title">{t("Start with a story", "ابدأ بقصة")}</h2></div><Link href="/search" className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">{t("View all works", "عرض كل الأعمال")} <ArrowUpRight size={16}/></Link></div><div className="mb-7 flex flex-wrap gap-2">{Object.entries(labels).map(([key, label]) => <button key={key} onClick={() => setCategory(key)} className={`rounded-full px-4 py-2 text-sm font-medium transition ${category === key ? "bg-foreground text-background" : "border border-border text-muted-foreground hover:border-foreground/40"}`}>{lang === "ar" ? label.ar : label.en}</button>)}</div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{visible.map((work, index) => <Link key={work.id} href={`/work/${work.id}`} className="group"><Card className="media-card h-full overflow-hidden border-border/60 bg-card"><div className="relative aspect-[4/5] overflow-hidden bg-muted"><img src={work.coverImageUrl || fallback[index % fallback.length].coverImageUrl} alt={lang === "ar" ? (work.titleAr || work.title) : work.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105"/><div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"/><Badge className="absolute start-3 top-3 bg-black/55 text-white backdrop-blur">{labels[work.type]?.[lang] || work.type}</Badge><div className="absolute bottom-3 start-3 end-3 flex items-end justify-between text-white"><div><div className="font-display text-xl font-bold leading-tight">{lang === "ar" ? (work.titleAr || work.title) : work.title}</div><div className="mt-1 text-xs text-white/70">{work.releaseYear || "—"} · {work.studio || t("Independent", "مستقل")}</div></div><div className="flex items-center gap-1 text-sm"><Star size={13} className="fill-amber-400 text-amber-400"/>{work.score || "—"}</div></div></div><CardContent className="p-4"><p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{lang === "ar" ? ((work as typeof work & { summaryAr?: string | null }).summaryAr || work.summary) : work.summary}</p></CardContent></Card></Link>)}</div></section>
+
+      <section id="franchises" className="container border-t border-border/60 py-16"><div className="mb-8"><p className="eyebrow">02 / {t("Connected worlds", "عوالم مترابطة")}</p><h2 className="section-title">{t("Follow the canon", "اتبع الخط الزمني")}</h2></div><div className="grid gap-5 md:grid-cols-3">{(home.data?.franchises?.length ? home.data.franchises : [{ id: 1, name: "Gundam", nameAr: "غاندام", description: "Universal Century and beyond", coverImageUrl: fallback[0].coverImageUrl }, { id: 2, name: "The Matrix", nameAr: "ذا ماتريكس", description: "Reality, simulation, resistance", coverImageUrl: fallback[2].coverImageUrl }, { id: 3, name: "Arcane / Runeterra", nameAr: "أركين / رونيتيـرا", description: "Cities divided by invention", coverImageUrl: fallback[3].coverImageUrl }]).map(fr => <Card key={fr.id} className="group overflow-hidden border-border/60"><div className="relative h-48 overflow-hidden"><img src={fr.coverImageUrl || fallback[0].coverImageUrl} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" alt=""/><div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"/><div className="absolute bottom-4 start-5 text-white"><div className="font-display text-xl font-bold">{lang === "ar" ? (fr.nameAr || fr.name) : fr.name}</div><div className="text-xs text-white/70">{fr.description}</div></div></div><CardContent className="flex items-center justify-between p-4"><span className="text-sm text-muted-foreground">{t("Chronological + release order", "ترتيب زمني وإصدار")}</span><ArrowUpRight size={17} className="text-primary"/></CardContent></Card>)}</div></section>
+
+      <section id="assistant" className="container pb-20"><div className="ai-panel flex flex-col justify-between gap-8 rounded-[2rem] p-8 text-white md:flex-row md:items-center md:p-12"><div className="max-w-2xl"><div className="mb-4 flex items-center gap-3"><div className="rounded-xl bg-white/15 p-3"><Bot size={24}/></div><span className="eyebrow text-white/60">03 / {t("Archive intelligence", "ذكاء الأرشيف")}</span></div><h2 className="font-display text-3xl font-black sm:text-4xl">{t("Ask the archive.", "اسأل الأرشيف.")}</h2><p className="mt-4 leading-7 text-white/65">{t("Get a clear watch order, discover similar worlds, or translate a summary into Arabic with context-aware answers.", "احصل على ترتيب مشاهدة واضح، اكتشف عوالم مشابهة، أو ترجم أي ملخص إلى العربية بإجابة واعية بالسياق.")}</p></div><Button onClick={() => navigate("/assistant")} className="rounded-full bg-white px-6 text-slate-950 hover:bg-white/90"><Sparkles size={16}/> {t("Open AI assistant", "فتح مساعد AI")}</Button></div></section>
+    </main>
+    <footer className="border-t border-border/60 py-8"><div className="container flex flex-col justify-between gap-3 text-sm text-muted-foreground sm:flex-row"><span>Visual Works Encyclopedia · {t("A living archive for visual stories", "أرشيف حي للقصص المرئية")}</span><span>{t("Built for discovery, not just lists.", "مصمم للاكتشاف، وليس للقوائم فقط.")}</span></div></footer>
+  </div>;
 }
