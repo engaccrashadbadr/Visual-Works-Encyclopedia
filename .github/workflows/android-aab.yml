@@ -5,9 +5,6 @@ on:
   push:
     tags:
       - "v*"
-    paths:
-      - "mobile/**"
-      - ".github/workflows/android-aab.yml"
 
 env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -38,6 +35,11 @@ jobs:
       - name: Install mobile dependencies
         working-directory: mobile
         run: pnpm install --frozen-lockfile
+
+      - name: Validate Expo Android configuration
+        working-directory: mobile
+        run: |
+          node -e "const c=require('./app.json').expo; if(c.android?.package !== 'com.engaccrashadbadr.visualworks') throw new Error('Unexpected Android package'); if(c.extra?.webAppUrl !== 'https://visualworks-cnmtcefg.manus.space') throw new Error('Unexpected public web app URL');"
 
       - name: Build production AAB
         working-directory: mobile
