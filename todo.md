@@ -117,5 +117,5 @@
 - [x] Record final work and entity relationship counts grouped by relationship category.
 - [x] Audit missing or stale work cover URLs and verify source-backed cover update behavior; 65 of 80 Marvel works now have source-backed covers, with 15 lacking a public image source.
 - [x] Verify APK and AAB workflows produce installable/store-ready Android artifacts with the current mobile configuration; local validation passed, while actual EAS artifacts require EXPO_TOKEN in GitHub.
-- [ ] Push cover and workflow updates to GitHub and verify the remote commit/workflows.
-- [ ] Run final project checks, push the latest updates to GitHub main, and verify the remote commit.
+- [x] Push cover and workflow updates to GitHub and verify the remote commit/workflows.
+- [x] Run final project checks, push the latest updates to GitHub main, and verify the remote commit.
