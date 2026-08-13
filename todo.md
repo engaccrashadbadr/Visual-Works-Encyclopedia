@@ -95,7 +95,7 @@
 - [x] Verify the remote commit and document the final APK build status.
 - [x] Check whether Android SDK and Gradle can produce a local release APK without Expo authentication.
 - [x] If local APK build is unavailable, add a GitHub Actions workflow that builds with EAS using an EXPO_TOKEN secret.
-- [ ] Validate and push the fallback workflow or APK artifact path to GitHub main.
+- [x] Validate and push the fallback workflow or APK artifact path to GitHub main.
 - [x] Verify and harden deep-link restoration when the Expo WebView app is opened or resumed with a share URL.
-- [ ] Add automated coverage for the mobile deep-link resolver and initial/resumed URL handling contract.
-- [ ] Run a mobile-specific deep-link validation step and record any runtime limitation.
+- [x] Add automated coverage for the mobile deep-link resolver and initial/resumed URL handling contract.
+- [x] Run a mobile-specific deep-link validation step and record any runtime limitation.

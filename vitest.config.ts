@@ -6,6 +6,7 @@ const templateRoot = path.resolve(import.meta.dirname);
 export default defineConfig({
   root: templateRoot,
   resolve: {
+    dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(templateRoot, "client", "src"),
       "@shared": path.resolve(templateRoot, "shared"),
@@ -23,6 +24,8 @@ export default defineConfig({
       "client/**/*.spec.tsx",
       "mobile/**/*.test.ts",
       "mobile/**/*.spec.ts",
+      "mobile/**/*.test.tsx",
+      "mobile/**/*.spec.tsx",
     ],
     pool: "forks",
     maxWorkers: 1,
