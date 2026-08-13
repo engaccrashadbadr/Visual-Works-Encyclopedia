@@ -9,7 +9,7 @@ import { compareEntities, createEntity, createWork, deleteEntity, deleteWork, ge
 import { storagePut } from "./storage";
 import { isTmdbEnabled, syncTmdb } from "./tmdb";
 
-const workType = z.enum(["all", "anime", "film", "series", "ova", "animation"]);
+const workType = z.enum(["all", "anime", "manga", "film", "series", "ova", "animation"]);
 
 export const appRouter = router({
   system: systemRouter,
@@ -33,7 +33,7 @@ export const appRouter = router({
   assistant: router({
     ask: publicProcedure.input(z.object({ question: z.string().min(2), context: z.string().optional(), language: z.enum(["ar", "en"]).default("en") })).mutation(async ({ input }) => {
       const response = await invokeLLM({ messages: [
-        { role: "system", content: `You are Visual Works Encyclopedia's research assistant. Answer accurately and clearly about anime, films, series, OVAs, characters and units. If the user asks for Arabic, translate or answer in Arabic. Never invent ratings, reviews, citations, or factual sources. State uncertainty when data is unavailable. User language: ${input.language}.` },
+        { role: "system", content: `You are Visual Works Encyclopedia's research assistant. Answer accurately and clearly about anime, manga, films, series, OVAs, characters and units. If the user asks for Arabic, translate or answer in Arabic. Never invent ratings, reviews, citations, or factual sources. State uncertainty when data is unavailable. User language: ${input.language}.` },
         { role: "user", content: `${input.context ? `Catalog context:\n${input.context}\n\n` : ""}${input.question}` },
       ] });
       const content = response.choices?.[0]?.message?.content;
@@ -56,7 +56,7 @@ export const appRouter = router({
       return syncAniListCatalog(input.target);
     }),
     syncTmdb: protectedProcedure.input(z.object({ page: z.number().min(1).max(20).default(1) })).mutation(async ({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return syncTmdb(input.page); }),
-    createWork: protectedProcedure.input(z.object({ title: z.string().min(1), type: z.enum(["anime", "film", "series", "ova", "animation"]), titleAr: z.string().optional(), releaseYear: z.number().optional(), studio: z.string().optional(), summary: z.string().optional(), score: z.string().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return createWork(input); }),
+    createWork: protectedProcedure.input(z.object({ title: z.string().min(1), type: z.enum(["anime", "manga", "film", "series", "ova", "animation"]), titleAr: z.string().optional(), releaseYear: z.number().optional(), studio: z.string().optional(), summary: z.string().optional(), score: z.string().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return createWork(input); }),
     updateWork: protectedProcedure.input(z.object({ id: z.number(), title: z.string().min(1).optional(), titleAr: z.string().optional(), summary: z.string().optional(), studio: z.string().optional(), director: z.string().optional(), score: z.string().optional(), releaseYear: z.number().optional(), coverImageUrl: z.string().url().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); const { id, ...data } = input; return updateWork(id, data); }),
     deleteWork: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return deleteWork(input.id); }),
     createEntity: protectedProcedure.input(z.object({ kind: z.enum(["character", "unit", "weapon", "vehicle", "creature"]), name: z.string().min(1), nameAr: z.string().optional(), description: z.string().optional(), abilities: z.string().optional(), relationships: z.string().optional(), imageUrl: z.string().url().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return createEntity(input); }),

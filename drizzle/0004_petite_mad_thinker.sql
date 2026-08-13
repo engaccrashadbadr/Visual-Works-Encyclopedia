@@ -1,0 +1,1 @@
+ALTER TABLE `works` MODIFY COLUMN `type` enum('anime','manga','film','series','ova','animation') NOT NULL;

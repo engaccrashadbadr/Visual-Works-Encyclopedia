@@ -7,6 +7,7 @@ describe("AniList adapter", () => {
     expect(mapType("TV")).toBe("anime");
     expect(mapType("OVA")).toBe("ova");
     expect(mapType("SPECIAL")).toBe("animation");
+    expect(mapType("MANGA", "MANGA")).toBe("manga");
   });
 
   it("removes HTML from imported summaries", () => {

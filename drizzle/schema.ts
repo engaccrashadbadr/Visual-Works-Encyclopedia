@@ -38,7 +38,7 @@ export const works = mysqlTable("works", {
   universeId: int("universeId"),
   title: varchar("title", { length: 500 }).notNull(),
   titleAr: varchar("titleAr", { length: 500 }),
-  type: mysqlEnum("type", ["anime", "film", "series", "ova", "animation"]).notNull(),
+  type: mysqlEnum("type", ["anime", "manga", "film", "series", "ova", "animation"]).notNull(),
   releaseYear: int("releaseYear"),
   releaseDate: timestamp("releaseDate"),
   studio: varchar("studio", { length: 255 }),

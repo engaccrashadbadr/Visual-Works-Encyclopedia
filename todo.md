@@ -103,3 +103,11 @@
 - [x] Document production AAB prerequisites, signing, and Google Play artifact retrieval.
 - [x] Validate and push the production AAB workflow.
 - [x] Push the AAB workflow, README, and task log to GitHub main and verify the remote workflow listing.
+- [ ] Report import counts at each completed expansion batch and provide final counts by type, year range, and relationship category.
+- [x] Confirm final catalog sources as AniList and Wikidata only for 1970–2026; exclude IMDb from the public import.
+- [x] Define source IDs, deduplication rules, and relationship confidence for AniList and Wikidata imports.
+- [x] Document explicit source and relationship-confidence rules in research/data-sources-1970-2026.md.
+- [x] Add resumable import batches and progress counts for AniList and Wikidata enrichment.
+- [x] Add manga media support end-to-end in schema, tRPC filters/admin input, and import the first 500 AniList manga works from 1970–2026; further pages remain available.
+- [ ] Add Wikidata enrichment/import for film and television works with explicit source IDs and conservative links; current SPARQL endpoint is intermittently unavailable.
+- [x] Add tests for manga classification, source-scoped counts, and persisted relationship links.

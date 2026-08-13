@@ -22,10 +22,12 @@ describe("expanded AniList catalog", () => {
     const db = await getDb();
     expect(db).toBeTruthy();
     const workCount = await db!.select({ value: count() }).from(works).where(eq(works.source, "anilist"));
+    const mangaCount = await db!.select({ value: count() }).from(works).where(and(eq(works.source, "anilist"), eq(works.type, "manga")));
     const roleCount = await db!.select({ value: count() }).from(workEntities).where(and(eq(workEntities.role, "MAIN"), eq(workEntities.isMain, 1)));
     const relationCount = await db!.select({ value: count() }).from(workRelations);
     const characterRelationCount = await db!.select({ value: count() }).from(entityRelations).where(eq(entityRelations.relationType, "co_appearance"));
     expect(Number(workCount[0]?.value)).toBeGreaterThanOrEqual(2000);
+    expect(Number(mangaCount[0]?.value)).toBeGreaterThanOrEqual(500);
     expect(Number(roleCount[0]?.value)).toBeGreaterThan(0);
     expect(Number(relationCount[0]?.value)).toBeGreaterThan(0);
     expect(Number(characterRelationCount[0]?.value)).toBeGreaterThan(0);

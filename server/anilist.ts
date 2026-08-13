@@ -3,10 +3,10 @@ import { getDb } from "./db";
 import { entities, entityRelations, syncRuns, workEntities, workRelations, works } from "../drizzle/schema";
 
 const ANILIST_ENDPOINT = "https://graphql.anilist.co";
-const query = `query ($page: Int, $perPage: Int) {
+const query = `query ($page: Int, $perPage: Int, $type: MediaType, $sort: [MediaSort]) {
   Page(page: $page, perPage: $perPage) {
     pageInfo { hasNextPage }
-    media(sort: POPULARITY_DESC, type: ANIME) {
+    media(sort: $sort, type: $type) {
       id title { romaji english native } type format startDate { year }
       studios(isMain: true) { nodes { name } }
       averageScore description episodes duration
@@ -44,9 +44,11 @@ type AniMedia = {
 };
 
 type AniPage = { data?: { Page?: { pageInfo?: { hasNextPage?: boolean }; media?: AniMedia[] } } };
+type AniMediaType = "ANIME" | "MANGA";
+export type { AniMediaType };
 
 export function cleanHtml(value?: string) { return value?.replace(/<[^>]*>/g, "").replace(/\n+/g, " ").trim() || null; }
-export function mapType(format?: string): "anime" | "film" | "series" | "ova" | "animation" { if (format === "MOVIE") return "film"; if (format === "OVA" || format === "ONA") return "ova"; if (format === "SPECIAL") return "animation"; return "anime"; }
+export function mapType(format?: string, mediaType?: AniMediaType): "anime" | "manga" | "film" | "series" | "ova" | "animation" { if (mediaType === "MANGA" || format === "MANGA" || format === "NOVEL" || format === "ONE_SHOT") return "manga"; if (format === "MOVIE") return "film"; if (format === "OVA" || format === "ONA") return "ova"; if (format === "SPECIAL") return "animation"; return "anime"; }
 export function mapRelation(value?: string) { return relationType(value); }
 export function buildCharacterLinks(workId: number, edges: { id: number; role?: string }[]) { return edges.map(edge => ({ workId, entityId: edge.id, role: edge.role || "supporting", isMain: edge.role === "MAIN" ? 1 : 0 })); }
 function relationType(value?: string): "sequel" | "side_story" | "remake" | "reboot" | "prequel" | "spin_off" | null {
@@ -77,16 +79,23 @@ async function saveCharacters(db: any, workId: number, characters: AniMedia["cha
 }
 
 export async function syncAniList(page = 1, perPage = 25) {
+  return syncAniListMedia(page, perPage, "ANIME");
+}
+
+export async function syncAniListMedia(page = 1, perPage = 25, mediaType: AniMediaType = "ANIME", fromYear = 1970, toYear = 2026) {
   const db = await getDb(); if (!db) throw new Error("Database unavailable");
   const run = await db.insert(syncRuns).values({ source: "anilist", status: "running", itemsProcessed: 0 }); const runId = Number(run[0].insertId);
   try {
-    const response = await fetch(ANILIST_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ query, variables: { page, perPage: Math.min(Math.max(perPage, 1), 50) } }) });
+    const response = await fetch(ANILIST_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ query, variables: { page, perPage: Math.min(Math.max(perPage, 1), 50), type: mediaType, sort: mediaType === "MANGA" ? ["START_DATE_DESC"] : ["POPULARITY_DESC"] } }) });
     if (!response.ok) throw new Error(`AniList request failed: ${response.status}`);
     const json = await response.json() as AniPage;
-    const media = json.data?.Page?.media || [];
+    const media = (json.data?.Page?.media || []).filter(item => {
+      const year = item.startDate?.year;
+      return typeof year !== "number" || (year >= fromYear && year <= toYear);
+    });
     for (const item of media) {
       const title = item.title.english || item.title.romaji || item.title.native || `AniList #${item.id}`;
-      const payload = { externalId: String(item.id), source: "anilist", title, titleAr: item.title.native || null, type: mapType(item.format), releaseYear: item.startDate?.year || null, studio: item.studios?.nodes?.[0]?.name || null, score: item.averageScore ? String((item.averageScore / 10).toFixed(2)) : null, summary: cleanHtml(item.description), episodeCount: item.episodes || null, durationMinutes: item.duration || null, coverImageUrl: item.coverImage?.extraLarge || item.coverImage?.large || null, bannerImageUrl: item.bannerImage || null, popularity: item.popularity || 0 };
+      const payload = { externalId: String(item.id), source: "anilist", title, titleAr: item.title.native || null, type: mapType(item.format, mediaType), releaseYear: item.startDate?.year || null, studio: item.studios?.nodes?.[0]?.name || null, score: item.averageScore ? String((item.averageScore / 10).toFixed(2)) : null, summary: cleanHtml(item.description), episodeCount: item.episodes || null, durationMinutes: item.duration || null, coverImageUrl: item.coverImage?.extraLarge || item.coverImage?.large || null, bannerImageUrl: item.bannerImage || null, popularity: item.popularity || 0 };
       await db.insert(works).values(payload).onDuplicateKeyUpdate({ set: { ...payload, updatedAt: new Date() } });
       const workId = await getWorkId(db, String(item.id));
       if (!workId) continue;
@@ -119,6 +128,19 @@ export async function syncAniListCatalog(target = 2000) {
     await new Promise(resolve => setTimeout(resolve, 350));
   }
   return { target, processed, pages };
+}
+
+export async function syncAniListMediaCatalog(mediaType: AniMediaType, target = 2000, fromYear = 1970, toYear = 2026, startPage = 1) {
+  const perPage = 50;
+  const pages = Math.ceil(target / perPage);
+  let processed = 0;
+  for (let page = startPage; page < startPage + pages; page++) {
+    const result = await syncAniListMedia(page, perPage, mediaType, fromYear, toYear);
+    processed += result.processed;
+    if (!result.hasNextPage || result.processed === 0) break;
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  return { mediaType, target, fromYear, toYear, processed, pages, startPage };
 }
 
 const relationsQuery = `query ($page: Int, $perPage: Int) { Page(page: $page, perPage: $perPage) { media(sort: POPULARITY_DESC, type: ANIME) { id relations { edges { relationType node { id } } } } } }`;
