@@ -101,5 +101,5 @@
 - [x] Run a mobile-specific deep-link validation step and record any runtime limitation.
 - [x] Add a separate GitHub Actions workflow for the production Android AAB build.
 - [x] Document production AAB prerequisites, signing, and Google Play artifact retrieval.
-- [ ] Validate and push the production AAB workflow.
-- [ ] Push the AAB workflow, README, and task log to GitHub main and verify the remote workflow listing.
+- [x] Validate and push the production AAB workflow.
+- [x] Push the AAB workflow, README, and task log to GitHub main and verify the remote workflow listing.
