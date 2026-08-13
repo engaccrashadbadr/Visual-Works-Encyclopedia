@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { WebView } from "react-native-webview";
-
-const PRODUCTION_URL = "https://visualworks-cnmtcefg.manus.space";
+import { PRODUCTION_URL, resolveWebUrl } from "./deepLinks";
 
 export default function App() {
   const [sourceUrl, setSourceUrl] = useState(PRODUCTION_URL);
@@ -12,17 +18,21 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
-    Linking.getInitialURL().then((url) => {
-      if (!active || !url) return;
-      if (url.startsWith("visualworks://")) {
-        const path = url.replace("visualworks://", "");
-        setSourceUrl(`${PRODUCTION_URL}/${path}`);
-      } else if (url.startsWith(PRODUCTION_URL)) {
-        setSourceUrl(url);
-      }
-    });
+    const applyIncomingUrl = (url: string | null) => {
+      const nextUrl = resolveWebUrl(url);
+      if (!active || !nextUrl) return;
+      setFailed(false);
+      setSourceUrl(nextUrl);
+    };
+
+    Linking.getInitialURL().then(applyIncomingUrl);
+    const subscription = Linking.addEventListener("url", ({ url }) =>
+      applyIncomingUrl(url)
+    );
+
     return () => {
       active = false;
+      subscription.remove();
     };
   }, []);
 
@@ -33,12 +43,14 @@ export default function App() {
       <View style={styles.errorScreen}>
         <StatusBar style="light" />
         <Text style={styles.title}>تعذر تحميل موسوعة Visual Works</Text>
-        <Text style={styles.message}>تحقق من اتصال الإنترنت ثم أعد المحاولة.</Text>
+        <Text style={styles.message}>
+          تحقق من اتصال الإنترنت ثم أعد المحاولة.
+        </Text>
         <Pressable
           accessibilityRole="button"
           onPress={() => {
             setFailed(false);
-            setReloadKey((value) => value + 1);
+            setReloadKey(value => value + 1);
           }}
           style={({ pressed }) => [styles.retry, pressed && styles.pressed]}
         >
@@ -67,7 +79,7 @@ export default function App() {
           </View>
         )}
         onError={() => setFailed(true)}
-        onHttpError={(event) => {
+        onHttpError={event => {
           if (event.nativeEvent.statusCode >= 500) setFailed(true);
         }}
       />
@@ -93,9 +105,19 @@ const styles = StyleSheet.create({
     gap: 14,
     backgroundColor: "#0b1020",
   },
-  title: { color: "#f8fafc", fontSize: 22, fontWeight: "700", textAlign: "center" },
+  title: {
+    color: "#f8fafc",
+    fontSize: 22,
+    fontWeight: "700",
+    textAlign: "center",
+  },
   message: { color: "#cbd5e1", fontSize: 15, textAlign: "center" },
-  retry: { backgroundColor: "#9333ea", paddingHorizontal: 22, paddingVertical: 12, borderRadius: 12 },
+  retry: {
+    backgroundColor: "#9333ea",
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
   retryText: { color: "#ffffff", fontWeight: "700", fontSize: 15 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.97 }] },
 });

@@ -14,7 +14,16 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    include: ["server/**/*.test.ts", "server/**/*.spec.ts", "shared/**/*.test.ts", "shared/**/*.spec.ts", "client/**/*.test.tsx", "client/**/*.spec.tsx"],
+    include: [
+      "server/**/*.test.ts",
+      "server/**/*.spec.ts",
+      "shared/**/*.test.ts",
+      "shared/**/*.spec.ts",
+      "client/**/*.test.tsx",
+      "client/**/*.spec.tsx",
+      "mobile/**/*.test.ts",
+      "mobile/**/*.spec.ts",
+    ],
     pool: "forks",
     maxWorkers: 1,
     minWorkers: 1,

@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "check": "tsc --noEmit",
-    "build:apk": "eas build --platform android --profile preview"
+    "build:apk": "eas build --platform android --profile preview",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "expo": "~54.0.29",
@@ -21,4 +22,3 @@
     "typescript": "~5.9.3"
   }
 }
-
