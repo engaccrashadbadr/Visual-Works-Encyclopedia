@@ -55,15 +55,17 @@ visualworks://universe?universe=789&character=456
 
 عند فتح رابط مخطط الهاتف، يحوّله الغلاف إلى نطاق الموقع المنشور، كما يستقبل التطبيق روابط جديدة عندما يعود إلى الواجهة. ولضمان استعادة الحالة بشكل كامل يجب أن تبقى معاملات الرابط كما هي في روابط المشاركة التي يولدها الموقع. يغطي `mobile/App.test.tsx` حالتي الفتح البارد والاستئناف بمحاكاة `Linking` و`WebView`؛ أما اختبار الرابط على جهاز أو محاكي Android فعلي فلم يمكن تشغيله هنا لأن البيئة لا تحتوي على Android SDK أو `adb`.
 
-## إعداد الإصدار الإنتاجي
+## إعداد الإصدار الإنتاجي وملف AAB
 
-قبل رفع التطبيق إلى Google Play، غيّر `android.versionCode` في `app.json` مع كل إصدار. الأيقونة وشاشة البداية موجودتان في `mobile/assets/` ومربوطتان في `app.json`. بعد إضافة `EXPO_TOKEN` إلى أسرار GitHub يمكن تعديل ملف workflow إلى ملف `production` إذا أُريد إنشاء AAB للمتجر بدل APK الاختبار الداخلي.
+قبل كل إصدار جديد إلى Google Play، زد قيمة `android.versionCode` في `app.json`. يستخدم ملف `eas.json` ملف `production` مع `buildType: app-bundle`، لذلك تكون النتيجة ملف AAB وليس APK. يتولى EAS إدارة توقيع Android إذا كانت بيانات الاعتماد مضبوطة في مشروع Expo؛ لا تُحفظ مفاتيح التوقيع داخل GitHub repository.
 
-ينتج ملف AAB مناسبًا للمتجر باستخدام:
+أُضيف Workflow مستقل باسم **Build Android AAB** في `.github/workflows/android-aab.yml`. شغّله يدويًا من **Actions → Build Android AAB → Run workflow**، أو ادفع tag يبدأ بـ `v` مثل `v1.0.1`. يتطلب التشغيل وجود سر GitHub باسم `EXPO_TOKEN`، وبعد النجاح يظهر artifact باسم `visual-works-encyclopedia-release-aab` لتنزيل ملف AAB ورفعه إلى Google Play Console.
+
+يمكن تنفيذ البناء من جهاز محلي عند توفر جلسة Expo أو `EXPO_TOKEN`:
 
 ```bash
 cd mobile
-pnpm dlx eas-cli build --platform android --profile production --non-interactive
+pnpm dlx eas-cli@latest build --platform android --profile production --non-interactive
 ```
 
-هذا المجلد لا يحتوي على كلمات مرور أو رموز GitHub أو ملفات `.env`.
+هذا Workflow يبني الملف ويرفعه كـ Artifact فقط؛ لا ينفذ الإرسال التلقائي إلى Google Play. الإرسال الآلي يحتاج لاحقًا إلى حساب خدمة Google Play وتهيئة اعتماد منفصلة، ولا ينبغي إضافتها إلا بعد تجهيز صلاحيات Google Play Console. هذا المجلد لا يحتوي على كلمات مرور أو رموز GitHub أو ملفات `.env`.

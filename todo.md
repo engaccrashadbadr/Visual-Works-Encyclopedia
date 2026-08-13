@@ -99,3 +99,7 @@
 - [x] Verify and harden deep-link restoration when the Expo WebView app is opened or resumed with a share URL.
 - [x] Add automated coverage for the mobile deep-link resolver and initial/resumed URL handling contract.
 - [x] Run a mobile-specific deep-link validation step and record any runtime limitation.
+- [x] Add a separate GitHub Actions workflow for the production Android AAB build.
+- [x] Document production AAB prerequisites, signing, and Google Play artifact retrieval.
+- [ ] Validate and push the production AAB workflow.
+- [ ] Push the AAB workflow, README, and task log to GitHub main and verify the remote workflow listing.

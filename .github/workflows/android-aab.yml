@@ -1,0 +1,61 @@
+name: Build Android AAB
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+    paths:
+      - "mobile/**"
+      - ".github/workflows/android-aab.yml"
+
+env:
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+permissions:
+  contents: read
+
+jobs:
+  build-aab:
+    name: Build production AAB with EAS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: mobile/pnpm-lock.yaml
+
+      - name: Install mobile dependencies
+        working-directory: mobile
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production AAB
+        working-directory: mobile
+        run: pnpm dlx eas-cli@latest build --platform android --profile production --non-interactive --wait --json > eas-build.json
+
+      - name: Download AAB
+        working-directory: mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_URL="$(node -e "const fs=require('fs'); const raw=JSON.parse(fs.readFileSync('eas-build.json','utf8')); const build=Array.isArray(raw)?raw[0]:raw; process.stdout.write(build?.artifacts?.buildUrl || '')")"
+          test -n "$BUILD_URL"
+          curl --fail --location --retry 3 "$BUILD_URL" --output visual-works-encyclopedia-release.aab
+
+      - name: Upload production AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-works-encyclopedia-release-aab
+          path: mobile/visual-works-encyclopedia-release.aab
+          if-no-files-found: error
+          retention-days: 30
