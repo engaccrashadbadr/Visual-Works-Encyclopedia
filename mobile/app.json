@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Visual Works Encyclopedia",
+    "slug": "visual-works-encyclopedia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "visualworks",
+    "android": {
+      "package": "com.engaccrashadbadr.visualworks",
+      "versionCode": 1,
+      "permissions": ["INTERNET"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [{ "scheme": "visualworks" }]
+        }
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.engaccrashadbadr.visualworks"
+    },
+    "extra": {
+      "webAppUrl": "https://visualworks-cnmtcefg.manus.space"
+    }
+  }
+}

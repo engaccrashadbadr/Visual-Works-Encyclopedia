@@ -77,3 +77,10 @@
 - [x] Verify the remote repository contents and report the exported commit or branch.
 - [x] Push the current project to engaccrashadbadr/Visual-Works-Encyclopedia on GitHub main without including secrets or environment files.
 - [x] Verify the GitHub repository after push by checking remote contents and recording the exported branch and commit hash.
+- [x] Define the Android APK workflow and choose an Expo WebView wrapper to reuse the deployed responsive web client.
+- [x] Create a mobile Expo client that consumes the existing public web app.
+- [x] Add mobile navigation for catalog, search, work details, character cards, universe map, Marvel timeline, and sharing through the existing responsive web client.
+- [x] Configure Android package identity, deep links, and APK build profile.
+- [x] Run mobile typecheck/export validation and document the EAS APK build command.
+- [ ] Link an Expo/EAS account and run the preview profile to produce the downloadable APK artifact.
+- [ ] Add branded Android icon and splash assets before store distribution.
