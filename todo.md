@@ -21,3 +21,17 @@
 - [x] Expose Arabic summary translation and similar-title recommendations in the assistant UI.
 - [x] Add Vitest coverage for catalog procedures, assistant procedure validation, and AniList sync error handling.
 - [x] Gate the optional TMDB integration in code with TMDB_API_KEY and expose AniList sync status to admins.
+- [x] Import at least 2,000 distinct visual works/anime from real external source data with deduplication.
+- [x] Import characters for works and persist work-character appearances with role metadata.
+- [x] Persist character-to-character relationships and universe/work links from source relationships.
+- [x] Simplify search to one name input with partial-name matching across works and characters.
+- [x] Add tests for expanded import counts, character links, relationship persistence, and partial search behavior.
+- [x] Make public catalog browsing, work details, entity details, and search work without login while keeping admin mutations protected.
+- [x] Resume and complete the remaining AniList import to reach at least 2,000 works with characters and relationships.
+- [x] Verify unauthenticated routes, partial-name search, admin protection, and final import counts.
+- [x] Remove any email/login gate from public home, search, work, character, unit, assistant, and comparison routes.
+- [x] Confirm admin dashboard and sync mutations remain protected while all read-only catalog access is public.
+- [x] Confirm and test role metadata on every work-character appearance link.
+- [x] Confirm and test source-derived universe and relationship links beyond co-appearance counts.
+- [x] Add explicit Vitest coverage for import target counts, character/work persistence, relationship persistence, and substring search.
+- [x] Run and record explicit partial-name search verification for works and characters.

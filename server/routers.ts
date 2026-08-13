@@ -4,8 +4,8 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
-import { syncAniList } from "./anilist";
-import { compareEntities, createEntity, createWork, deleteEntity, deleteWork, getEntityDetails, getFranchiseOrder, getLatestSync, getWorkDetails, listFeaturedWorks, listPopularFranchises, listUniverses, searchWorks, setEntityImage, setWorkImage, updateEntity, updateWork } from "./db";
+import { syncAniList, syncAniListCatalog } from "./anilist";
+import { compareEntities, createEntity, createWork, deleteEntity, deleteWork, getEntityDetails, getEntityRelations, getFranchiseOrder, getLatestSync, getWorkDetails, listFeaturedWorks, listPopularFranchises, listUniverses, searchCatalog, searchWorks, setEntityImage, setWorkImage, updateEntity, updateWork } from "./db";
 import { storagePut } from "./storage";
 import { isTmdbEnabled, syncTmdb } from "./tmdb";
 
@@ -20,8 +20,10 @@ export const appRouter = router({
   catalog: router({
     home: publicProcedure.query(async () => ({ featured: await listFeaturedWorks(), franchises: await listPopularFranchises() })),
     search: publicProcedure.input(z.object({ q: z.string().optional(), type: workType.optional(), year: z.number().optional(), studio: z.string().optional(), minScore: z.number().optional(), limit: z.number().min(1).max(50).optional() })).query(({ input }) => searchWorks(input)),
+    searchAll: publicProcedure.input(z.object({ q: z.string().min(1), limit: z.number().min(1).max(50).optional() })).query(({ input }) => searchCatalog(input.q, input.limit)),
     work: publicProcedure.input(z.object({ id: z.number() })).query(({ input }) => getWorkDetails(input.id)),
     entity: publicProcedure.input(z.object({ id: z.number() })).query(({ input }) => getEntityDetails(input.id)),
+    entityRelations: publicProcedure.input(z.object({ id: z.number() })).query(({ input }) => getEntityRelations(input.id)),
     compare: publicProcedure.input(z.object({ ids: z.array(z.number()).min(1).max(2) })).query(({ input }) => compareEntities(input.ids)),
     universes: publicProcedure.query(() => listUniverses()),
     franchiseOrder: publicProcedure.input(z.object({ franchiseId: z.number(), order: z.enum(["chronological", "release"]).default("chronological") })).query(({ input }) => getFranchiseOrder(input.franchiseId, input.order)),
@@ -46,6 +48,10 @@ export const appRouter = router({
     syncAniList: protectedProcedure.input(z.object({ page: z.number().min(1).max(100).default(1), perPage: z.number().min(1).max(50).default(25) })).mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") throw new Error("Admin access required");
       return syncAniList(input.page, input.perPage);
+    }),
+    syncAniListCatalog: protectedProcedure.input(z.object({ target: z.number().min(1).max(2000).default(2000) })).mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "admin") throw new Error("Admin access required");
+      return syncAniListCatalog(input.target);
     }),
     syncTmdb: protectedProcedure.input(z.object({ page: z.number().min(1).max(20).default(1) })).mutation(async ({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return syncTmdb(input.page); }),
     createWork: protectedProcedure.input(z.object({ title: z.string().min(1), type: z.enum(["anime", "film", "series", "ova", "animation"]), titleAr: z.string().optional(), releaseYear: z.number().optional(), studio: z.string().optional(), summary: z.string().optional(), score: z.string().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return createWork(input); }),

@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { entities, franchises, InsertUser, syncRuns, universes, users, workEntities, workRelations, works } from "../drizzle/schema";
+import { entities, entityRelations, franchises, InsertUser, syncRuns, universes, users, workEntities, workRelations, works } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -58,6 +58,20 @@ export async function getEntityDetails(id: number) {
 }
 
 export async function compareEntities(ids: number[]) { const db = await getDb(); if (!db || ids.length === 0) return []; return db.select().from(entities).where(or(...ids.slice(0, 2).map(id => eq(entities.id, id)))); }
+export async function searchCatalog(q: string, limit = 30) {
+  const db = await getDb(); if (!db) return { works: [], characters: [] };
+  const term = `%${q.trim()}%`;
+  if (!q.trim()) return { works: [], characters: [] };
+  const [workResults, characterResults] = await Promise.all([
+    db.select().from(works).where(or(like(works.title, term), like(works.titleAr, term))).orderBy(desc(works.popularity), desc(works.score)).limit(limit),
+    db.select().from(entities).where(and(eq(entities.kind, "character"), or(like(entities.name, term), like(entities.nameAr, term)))).orderBy(asc(entities.name)).limit(limit),
+  ]);
+  return { works: workResults, characters: characterResults };
+}
+export async function getEntityRelations(id: number) {
+  const db = await getDb(); if (!db) return [];
+  return db.select({ relation: entityRelations, entity: entities }).from(entityRelations).innerJoin(entities, eq(entityRelations.toEntityId, entities.id)).where(eq(entityRelations.fromEntityId, id));
+}
 export async function listUniverses() { const db = await getDb(); if (!db) return []; return db.select().from(universes).orderBy(asc(universes.name)); }
 export async function createWork(input: any) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); const result = await db.insert(works).values(input); return { id: Number(result[0].insertId) }; }
 export async function updateWork(id: number, input: any) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); await db.update(works).set(input).where(eq(works.id, id)); return { success: true }; }

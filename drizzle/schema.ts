@@ -69,6 +69,8 @@ export const workRelations = mysqlTable("workRelations", {
 
 export const entities = mysqlTable("entities", {
   id: int("id").autoincrement().primaryKey(),
+  externalId: varchar("externalId", { length: 128 }),
+  source: varchar("source", { length: 32 }),
   kind: mysqlEnum("kind", ["character", "unit", "weapon", "vehicle", "creature"]).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   nameAr: varchar("nameAr", { length: 255 }),
@@ -79,7 +81,19 @@ export const entities = mysqlTable("entities", {
   relationships: text("relationships"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, table => ({ kindIdx: index("entities_kind_idx").on(table.kind), nameIdx: index("entities_name_idx").on(table.name, table.nameAr) }));
+}, table => ({ kindIdx: index("entities_kind_idx").on(table.kind), nameIdx: index("entities_name_idx").on(table.name, table.nameAr), externalIdx: uniqueIndex("entities_external_idx").on(table.source, table.externalId) }));
+
+export const entityRelations = mysqlTable("entityRelations", {
+  id: int("id").autoincrement().primaryKey(),
+  fromEntityId: int("fromEntityId").notNull(),
+  toEntityId: int("toEntityId").notNull(),
+  relationType: mysqlEnum("relationType", ["co_appearance", "family", "ally", "rival", "mentor", "team"]).notNull(),
+  label: varchar("label", { length: 255 }),
+}, table => ({
+  fromIdx: index("entity_rel_from_idx").on(table.fromEntityId),
+  toIdx: index("entity_rel_to_idx").on(table.toEntityId),
+  uniqueLink: uniqueIndex("entity_rel_unique_idx").on(table.fromEntityId, table.toEntityId, table.relationType),
+}));
 
 export const workEntities = mysqlTable("workEntities", {
   id: int("id").autoincrement().primaryKey(),
