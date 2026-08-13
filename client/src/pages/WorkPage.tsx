@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation, useRoute } from "wouter";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CharacterCardDialog, { type CharacterCardEntity } from "@/components/CharacterCardDialog";
 import { ArrowLeft, Bot, Calendar, Clock3, Film, GitBranch, Layers3, Star, Users } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toCharacterCardEntity } from "@shared/characterCard";
+import { readCharacterId } from "@shared/shareLinks";
 
 const relationLabels: Record<string, string> = { sequel: "تكملة / Sequel", side_story: "قصة جانبية / Side story", remake: "إعادة إنتاج / Remake", reboot: "إعادة تشغيل / Reboot", prequel: "تمهيد / Prequel", spin_off: "عمل فرعي / Spin-off" };
 export default function WorkPage() {
-  const [, params] = useRoute("/work/:id"); const [, navigate] = useLocation(); const { lang, toggleLang } = useLanguage(); const id = Number(params?.id); const [selectedEntity, setSelectedEntity] = useState<{ entity: CharacterCardEntity; role?: string | null } | null>(null); const query = trpc.catalog.work.useQuery({ id }); const data = query.data;
+  const [, params] = useRoute("/work/:id"); const [, navigate] = useLocation(); const { lang, toggleLang } = useLanguage(); const id = Number(params?.id); const [selectedEntity, setSelectedEntity] = useState<{ entity: CharacterCardEntity; role?: string | null } | null>(null); const query = trpc.catalog.work.useQuery({ id }); const data = query.data; const sharedCharacterId = typeof window === "undefined" ? null : readCharacterId(window.location.search);
+  useEffect(() => { if (!data || sharedCharacterId === null) return; const match = data.entities.find(item => item.entity.id === sharedCharacterId); if (match) setSelectedEntity({ entity: toCharacterCardEntity(match.entity), role: match.role }); }, [data, sharedCharacterId]);
   if (query.isLoading) return <div className="min-h-screen grid place-items-center"><div className="animate-pulse text-muted-foreground">Loading archive entry…</div></div>;
   if (!data) return <div className="container py-20"><Link href="/search" className="text-primary">Back to search</Link><h1 className="mt-6 font-display text-3xl font-bold">Work not found</h1></div>;
   const { work, entities, relations } = data; const main = entities.filter(x => x.isMain); const secondary = entities.filter(x => !x.isMain);

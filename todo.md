@@ -65,3 +65,11 @@
 - [x] Add an explicit timeline link to the UniverseMapPage controls.
 - [x] Verify the character dialog open state from a work entry and a map character node at desktop and mobile sizes.
 - [x] Add UI-level interaction coverage for opening and closing the shared character dialog.
+- [x] Add copyable share URLs for timeline order and selected character cards.
+- [x] Restore timeline order and character-card state from URL parameters on load.
+- [x] Add Clipboard API and fallback copy behavior with bilingual feedback.
+- [x] Add unit and UI tests for share URL encoding, restoration, and copy controls.
+- [x] Verify share controls responsively and publish a checkpoint.
+- [x] Encode map universe context in shared character-card URLs so arbitrary map character links reopen reliably.
+- [x] Add UI restoration tests for timeline, work, and map URL parameters.
+- [x] Add a timeline share-button UI test and save a new checkpoint after validation.

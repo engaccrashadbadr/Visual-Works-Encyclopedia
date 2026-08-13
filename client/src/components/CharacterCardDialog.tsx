@@ -1,10 +1,11 @@
 import { Link } from "wouter";
-import React from "react";
-import { ArrowUpRight, Shield, Sparkles, Users } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowUpRight, Share2, Shield, Sparkles, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { buildCharacterShareUrl } from "@shared/shareLinks";
 
 export type CharacterCardEntity = {
   id: number;
@@ -23,13 +24,24 @@ type CharacterCardDialogProps = {
   role?: string | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  sharePath?: string;
 };
 
 const fallbackImage = "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=700&q=80";
 
-export default function CharacterCardDialog({ entity, role, isOpen, onOpenChange }: CharacterCardDialogProps) {
+export default function CharacterCardDialog({ entity, role, isOpen, onOpenChange, sharePath }: CharacterCardDialogProps) {
   const { lang } = useLanguage();
+  const [shareState, setShareState] = useState<"idle" | "copied" | "error">("idle");
   if (!entity) return null;
+  const copyShareLink = async () => {
+    const url = buildCharacterShareUrl(window.location.origin, sharePath || window.location.pathname, entity.id, sharePath?.includes("universe=") ? Number(new URLSearchParams(sharePath.split("?")[1]).get("universe")) : undefined);
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url.toString());
+      else { const input = document.createElement("textarea"); input.value = url.toString(); input.style.position = "fixed"; input.style.opacity = "0"; document.body.appendChild(input); input.select(); document.execCommand("copy"); input.remove(); }
+      setShareState("copied");
+      window.setTimeout(() => setShareState("idle"), 1800);
+    } catch { setShareState("error"); }
+  };
   const title = lang === "ar" ? entity.nameAr || entity.name : entity.name;
   const alternate = lang === "ar" ? entity.name : entity.nameAr;
   const description = lang === "ar" ? entity.descriptionAr || entity.description : entity.description || entity.descriptionAr;
@@ -59,6 +71,7 @@ export default function CharacterCardDialog({ entity, role, isOpen, onOpenChange
             </div>
             <DialogFooter className="mt-auto pt-6 sm:justify-start">
               <Button asChild><Link href={`/entity/${entity.id}`} onClick={() => onOpenChange(false)}>{lang === "ar" ? "فتح الملف الكامل" : "Open full profile"}<ArrowUpRight size={15} /></Link></Button>
+              <Button variant="outline" onClick={copyShareLink}><Share2 size={15} />{shareState === "copied" ? (lang === "ar" ? "تم النسخ" : "Copied") : shareState === "error" ? (lang === "ar" ? "تعذر النسخ" : "Copy failed") : (lang === "ar" ? "مشاركة" : "Share")}</Button>
               <Button variant="outline" onClick={() => onOpenChange(false)}>{lang === "ar" ? "إغلاق" : "Close"}</Button>
             </DialogFooter>
           </div>

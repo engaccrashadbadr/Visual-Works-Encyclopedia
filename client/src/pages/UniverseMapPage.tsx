@@ -1,5 +1,4 @@
-import { useMemo, useRef, useState } from "react";
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import CharacterCardDialog, { type CharacterCardEntity } from "@/components/CharacterCardDialog";
 import { ArrowRight, ChevronDown, Info, Minus, Network, Plus, Search, Sparkles } from "lucide-react";
@@ -10,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trpc } from "@/lib/trpc";
 import { filterMapGraph, toggleMapFilter } from "@shared/mapFilters";
+import { readCharacterId, readUniverseId } from "@shared/shareLinks";
 
 const relationLabels: Record<string, { ar: string; en: string }> = {
   appearance: { ar: "ظهور في العمل", en: "Appears in work" },
@@ -25,7 +25,7 @@ const relationLabels: Record<string, { ar: string; en: string }> = {
 export default function UniverseMapPage() {
   const { lang } = useLanguage();
   const ar = lang === "ar";
-  const [universeId, setUniverseId] = useState<number | undefined>();
+  const [universeId, setUniverseId] = useState<number | undefined>(() => typeof window === "undefined" ? undefined : readUniverseId(window.location.search) ?? undefined);
   const [query, setQuery] = useState("");
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -38,6 +38,12 @@ export default function UniverseMapPage() {
   const universes = data?.universes ?? [];
   const nodes = (data?.nodes ?? []) as any[];
   const edges = (data?.edges ?? []) as any[];
+  const sharedCharacterId = typeof window === "undefined" ? null : readCharacterId(window.location.search);
+  useEffect(() => {
+    if (!sharedCharacterId) return;
+    const node = nodes.find(item => item.kind === "character" && item.refId === sharedCharacterId);
+    if (node) setCharacterCard({ id: node.refId, kind: "character", name: node.label, nameAr: node.labelAr, imageUrl: node.imageUrl, description: node.description });
+  }, [nodes, sharedCharacterId]);
   const kindOptions = useMemo(() => Array.from(new Set(nodes.map(node => node.kind))), [nodes]);
   const relationOptions = useMemo(() => Array.from(new Set(edges.map(edge => edge.type))), [edges]);
   const { visibleNodes, visibleEdges } = useMemo(() => filterMapGraph(nodes, edges, enabledKinds, enabledRelations, query), [nodes, edges, enabledKinds, enabledRelations, query]);
@@ -95,6 +101,6 @@ export default function UniverseMapPage() {
       </Card>
       <Card className="p-5 h-fit xl:sticky xl:top-5"><div className="flex items-center gap-2 mb-5"><Info className="h-4 w-4 text-primary" /><h2 className="font-bold">{ar ? "تفاصيل العقدة" : "Node details"}</h2></div>{selected ? <div className="space-y-4"><div className="rounded-xl bg-muted/50 p-4"><Badge>{kindLabel(selected.kind)}</Badge><h3 className="mt-3 text-xl font-bold">{nodeTitle(selected)}</h3>{selected.role && <p className="mt-1 text-sm text-muted-foreground">{ar ? "الدور" : "Role"}: {selected.role}</p>}{selected.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{selected.description}</p>}</div><div className="text-sm text-muted-foreground">{ar ? "عدد الروابط" : "Connections"}: {edges.filter(edge => edge.source === selected.id || edge.target === selected.id).length}</div>{selected.kind === "work" && <Link href={`/work/${selected.refId}`}><Button className="w-full">{ar ? "فتح صفحة العمل" : "Open work"}</Button></Link>}{selected.kind !== "work" && selected.kind !== "universe" && selected.kind !== "relation" && <Link href={`/entity/${selected.refId}`}><Button className="w-full">{ar ? "فتح ملف الشخصية" : "Open character"}</Button></Link>}</div> : <p className="text-sm leading-7 text-muted-foreground">{ar ? "اضغط على أي عقدة لرؤية تفاصيلها وروابطها. اسحب مساحة الخريطة للتحريك، واستخدم البحث لتقليل العناصر الظاهرة." : "Select any node to see its details and connections. Drag the map to pan, and use search to focus the view."}</p>}<div className="mt-8 border-t pt-5"><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">{ar ? "أنواع العقد والروابط" : "Node and relationship types"}</p><div className="space-y-2 text-xs text-muted-foreground"><p><span className="inline-block w-3 h-3 rounded-full bg-cyan-400 me-2 align-middle" />{ar ? "عقدة العالم" : "Universe node"}</p><p><span className="inline-block w-3 h-3 rounded-full bg-violet-400 me-2 align-middle" />{ar ? "عقدة العلاقة" : "Relationship node"}</p><p><span className="inline-block w-8 border-t border-primary align-middle me-2" />{ar ? "انتماء العمل للعالم" : "Work belongs to universe"}</p><p><span className="inline-block w-8 border-t border-border align-middle me-2" />{ar ? "ظهور الشخصية في عمل" : "Character appearance"}</p></div></div></Card>
     </section>
-    <CharacterCardDialog entity={characterCard} isOpen={Boolean(characterCard)} onOpenChange={(open) => { if (!open) setCharacterCard(null); }} />
+    <CharacterCardDialog entity={characterCard} sharePath={universeId ? `/map?universe=${universeId}` : "/map"} isOpen={Boolean(characterCard)} onOpenChange={(open) => { if (!open) setCharacterCard(null); }} />
   </main>;
 }
