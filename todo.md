@@ -84,3 +84,5 @@
 - [x] Run mobile typecheck/export validation and document the EAS APK build command.
 - [ ] Link an Expo/EAS account and run the preview profile to produce the downloadable APK artifact.
 - [ ] Add branded Android icon and splash assets before store distribution.
+- [x] Attempt an authenticated EAS preview APK build using the available project session.
+- [x] If EAS authentication is unavailable, document the exact blocking step and preserve the validated local Android export.
