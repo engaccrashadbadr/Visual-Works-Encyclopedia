@@ -73,3 +73,7 @@
 - [x] Encode map universe context in shared character-card URLs so arbitrary map character links reopen reliably.
 - [x] Add UI restoration tests for timeline, work, and map URL parameters.
 - [x] Add a timeline share-button UI test and save a new checkpoint after validation.
+- [x] Export the latest stable project version to the requested GitHub repository without secrets or environment files.
+- [x] Verify the remote repository contents and report the exported commit or branch.
+- [ ] Push the current project to engaccrashadbadr/Visual-Works-Encyclopedia on GitHub main without including secrets or environment files.
+- [ ] Verify the GitHub repository after push by checking remote contents and recording the exported branch and commit hash.
