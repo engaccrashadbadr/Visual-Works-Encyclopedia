@@ -30,6 +30,14 @@ describe("public catalog access", () => {
     expect(result.edges.some((edge: any) => edge.type === "appearance" || edge.type === "universe_work")).toBe(true);
   });
 
+  it("returns the public Marvel timeline contract without an authenticated user", async () => {
+    const caller = appRouter.createCaller(publicContext());
+    const result = await caller.catalog.marvelTimeline({ order: "event" });
+    expect(result.length).toBeGreaterThanOrEqual(80);
+    expect(result.every((row: any) => row.brand === "marvel" && row.source === "marvel")).toBe(true);
+    expect(result[0]?.eventOrder).toBeLessThanOrEqual(result.at(-1)?.eventOrder ?? 9999);
+  });
+
   it("keeps admin status protected without an authenticated user", async () => {
     const caller = appRouter.createCaller(publicContext());
     await expect(caller.admin.status()).rejects.toMatchObject({ code: "UNAUTHORIZED" });

@@ -5,7 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { syncAniList, syncAniListCatalog } from "./anilist";
-import { compareEntities, createEntity, createWork, deleteEntity, deleteWork, getEntityDetails, getEntityRelations, getFranchiseOrder, getLatestSync, getUniverseGraph, getWorkDetails, listFeaturedWorks, listPopularFranchises, listUniverses, searchCatalog, searchWorks, setEntityImage, setWorkImage, updateEntity, updateWork } from "./db";
+import { compareEntities, createEntity, createWork, deleteEntity, deleteWork, getEntityDetails, getEntityRelations, getFranchiseOrder, getLatestSync, getUniverseGraph, getWorkDetails, listFeaturedWorks, listMarvelTimeline, listPopularFranchises, listUniverses, searchCatalog, searchWorks, setEntityImage, setWorkImage, updateEntity, updateWork } from "./db";
 import { storagePut } from "./storage";
 import { isTmdbEnabled, syncTmdb } from "./tmdb";
 
@@ -28,6 +28,7 @@ export const appRouter = router({
     universes: publicProcedure.query(() => listUniverses()),
     graph: publicProcedure.input(z.object({ universeId: z.number().optional() }).optional()).query(({ input }) => getUniverseGraph(input?.universeId)),
     franchiseOrder: publicProcedure.input(z.object({ franchiseId: z.number(), order: z.enum(["chronological", "release"]).default("chronological") })).query(({ input }) => getFranchiseOrder(input.franchiseId, input.order)),
+    marvelTimeline: publicProcedure.input(z.object({ order: z.enum(["story", "release", "event"]).default("story") }).optional()).query(({ input }) => listMarvelTimeline(input?.order ?? "story")),
   }),
   assistant: router({
     ask: publicProcedure.input(z.object({ question: z.string().min(2), context: z.string().optional(), language: z.enum(["ar", "en"]).default("en") })).mutation(async ({ input }) => {

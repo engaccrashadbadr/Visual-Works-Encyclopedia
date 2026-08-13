@@ -48,3 +48,20 @@
 - [x] Re-run desktop and mobile verification after the filter interaction fix.
 - [x] Wire shared map filter tests into the Vitest include paths and confirm the suite count increases.
 - [x] Test deselecting the final active filter chip behavior.
+- [x] Open a character card/modal when selecting a character from any work or map view.
+- [x] Add Marvel works with source metadata and classify them for the catalog.
+- [x] Support story order, release-year order, and in-universe event order.
+- [x] Add a button and organized timeline view for browsing the selected order.
+- [x] Add tests and responsive visual verification for character cards, Marvel data, sorting, and timeline states.
+- [x] Add Marvel brand, story-order, and event-order fields to works with a safe migration.
+- [x] Seed the official MCU screen timeline into the database as source-tagged Marvel works.
+- [x] Add public contract tests for Marvel timeline ordering and imported catalog metadata.
+- [x] Add interaction coverage for character-card opening from work and map views.
+- [x] Give eventOrder a genuine in-universe chronology distinct from storyOrder.
+- [x] Add discoverable public timeline links from the home and map flows.
+- [x] Verify timeline and character dialog states at mobile and desktop sizes.
+- [x] Add a public tRPC contract test for catalog.marvelTimeline.
+- [x] Add focused character-card interaction helpers/tests for work and map entry points.
+- [x] Add an explicit timeline link to the UniverseMapPage controls.
+- [x] Verify the character dialog open state from a work entry and a map character node at desktop and mobile sizes.
+- [x] Add UI-level interaction coverage for opening and closing the shared character dialog.

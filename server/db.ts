@@ -113,3 +113,11 @@ export async function setWorkImage(id: number, url: string) { return updateWork(
 export async function setEntityImage(id: number, url: string) { return updateEntity(id, { imageUrl: url }); }
 export async function getLatestSync(source = "anilist") { const db = await getDb(); if (!db) return null; return (await db.select().from(syncRuns).where(eq(syncRuns.source, source)).orderBy(desc(syncRuns.id)).limit(1))[0] || null; }
 export async function getFranchiseOrder(franchiseId: number, order: "chronological" | "release") { const db = await getDb(); if (!db) return []; const rows = await db.select({ relation: workRelations, work: works }).from(workRelations).innerJoin(works, eq(workRelations.toWorkId, works.id)).where(eq(works.franchiseId, franchiseId)); return rows.sort((a, b) => ((order === "chronological" ? a.relation.chronologicalOrder : a.relation.releaseOrder) ?? 999) - ((order === "chronological" ? b.relation.chronologicalOrder : b.relation.releaseOrder) ?? 999)).map(row => ({ ...row.work, relationType: row.relation.relationType, relationshipLabel: ({ sequel: "تكملة / Sequel", side_story: "قصة جانبية / Side story", remake: "إعادة إنتاج / Remake", reboot: "إعادة تشغيل / Reboot", prequel: "تمهيد / Prequel", spin_off: "عمل فرعي / Spin-off" } as Record<string, string>)[row.relation.relationType] })); }
+
+export type MarvelTimelineOrder = "story" | "release" | "event";
+export async function listMarvelTimeline(order: MarvelTimelineOrder = "story") {
+  const db = await getDb(); if (!db) return [];
+  const rows = await db.select().from(works).where(eq(works.brand, "marvel"));
+  const key = order === "story" ? "storyOrder" : order === "event" ? "eventOrder" : "releaseYear";
+  return rows.sort((a, b) => ((a[key] ?? 9999) - (b[key] ?? 9999)) || ((a.releaseYear ?? 9999) - (b.releaseYear ?? 9999)) || a.title.localeCompare(b.title));
+}
