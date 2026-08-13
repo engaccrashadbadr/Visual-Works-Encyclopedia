@@ -119,3 +119,6 @@
 - [x] Verify APK and AAB workflows produce installable/store-ready Android artifacts with the current mobile configuration; local validation passed, while actual EAS artifacts require EXPO_TOKEN in GitHub.
 - [x] Push cover and workflow updates to GitHub and verify the remote commit/workflows.
 - [x] Run final project checks, push the latest updates to GitHub main, and verify the remote commit.
+- [ ] Trigger the production AAB GitHub Actions workflow for internal Google Play testing.
+- [ ] Monitor the AAB run and verify the downloadable artifact or report the exact blocking secret/signing error.
+- [ ] Fix the AAB/APK workflow pnpm setup mismatch reported by GitHub Actions and rerun the AAB build.
