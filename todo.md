@@ -90,3 +90,6 @@
 - [x] Keep admin, sync, upload, and write mutations protected by server-side authorization.
 - [x] Add tests proving public routes do not require login and admin mutations remain protected.
 - [x] Verify the public web app and mobile wrapper build without a login screen.
+- [x] Validate the latest web and mobile updates before export.
+- [x] Push the latest project and mobile workflow files to GitHub main.
+- [x] Verify the remote commit and document the final APK build status.
