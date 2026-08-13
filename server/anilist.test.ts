@@ -13,4 +13,12 @@ describe("AniList adapter", () => {
     expect(cleanHtml("<p>Hello <b>world</b></p>\nNext")).toBe("Hello world Next");
     expect(cleanHtml(undefined)).toBeNull();
   });
+
+  it("reports a sync failure when the database is unavailable", async () => {
+    const previous = process.env.DATABASE_URL;
+    delete process.env.DATABASE_URL;
+    const { syncAniList } = await import("./anilist");
+    await expect(syncAniList()).rejects.toThrow("Database unavailable");
+    if (previous) process.env.DATABASE_URL = previous;
+  });
 });

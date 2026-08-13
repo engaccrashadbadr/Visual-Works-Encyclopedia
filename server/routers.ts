@@ -5,7 +5,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { syncAniList } from "./anilist";
-import { compareEntities, getEntityDetails, getFranchiseOrder, getWorkDetails, listFeaturedWorks, listPopularFranchises, listUniverses, searchWorks } from "./db";
+import { compareEntities, createEntity, createWork, deleteEntity, deleteWork, getEntityDetails, getFranchiseOrder, getLatestSync, getWorkDetails, listFeaturedWorks, listPopularFranchises, listUniverses, searchWorks, setEntityImage, setWorkImage, updateEntity, updateWork } from "./db";
+import { storagePut } from "./storage";
+import { isTmdbEnabled, syncTmdb } from "./tmdb";
 
 const workType = z.enum(["all", "anime", "film", "series", "ova", "animation"]);
 
@@ -40,11 +42,19 @@ export const appRouter = router({
     }),
   }),
   admin: router({
-    status: protectedProcedure.query(({ ctx }) => ({ isAdmin: ctx.user.role === "admin" })),
+    status: protectedProcedure.query(async ({ ctx }) => ({ isAdmin: ctx.user.role === "admin", latestSync: await getLatestSync("anilist"), sources: { anilist: true, tmdb: isTmdbEnabled() } })),
     syncAniList: protectedProcedure.input(z.object({ page: z.number().min(1).max(100).default(1), perPage: z.number().min(1).max(50).default(25) })).mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "admin") throw new Error("Admin access required");
       return syncAniList(input.page, input.perPage);
     }),
+    syncTmdb: protectedProcedure.input(z.object({ page: z.number().min(1).max(20).default(1) })).mutation(async ({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return syncTmdb(input.page); }),
+    createWork: protectedProcedure.input(z.object({ title: z.string().min(1), type: z.enum(["anime", "film", "series", "ova", "animation"]), titleAr: z.string().optional(), releaseYear: z.number().optional(), studio: z.string().optional(), summary: z.string().optional(), score: z.string().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return createWork(input); }),
+    updateWork: protectedProcedure.input(z.object({ id: z.number(), title: z.string().min(1).optional(), titleAr: z.string().optional(), summary: z.string().optional(), studio: z.string().optional(), director: z.string().optional(), score: z.string().optional(), releaseYear: z.number().optional(), coverImageUrl: z.string().url().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); const { id, ...data } = input; return updateWork(id, data); }),
+    deleteWork: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return deleteWork(input.id); }),
+    createEntity: protectedProcedure.input(z.object({ kind: z.enum(["character", "unit", "weapon", "vehicle", "creature"]), name: z.string().min(1), nameAr: z.string().optional(), description: z.string().optional(), abilities: z.string().optional(), relationships: z.string().optional(), imageUrl: z.string().url().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return createEntity(input); }),
+    updateEntity: protectedProcedure.input(z.object({ id: z.number(), name: z.string().min(1).optional(), nameAr: z.string().optional(), description: z.string().optional(), abilities: z.string().optional(), relationships: z.string().optional(), imageUrl: z.string().url().optional() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); const { id, ...data } = input; return updateEntity(id, data); }),
+    deleteEntity: protectedProcedure.input(z.object({ id: z.number() })).mutation(({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); return deleteEntity(input.id); }),
+    uploadImage: protectedProcedure.input(z.object({ filename: z.string().min(1).max(120), contentType: z.string().regex(/^image\//), base64: z.string().min(20), target: z.enum(["work", "entity"]), id: z.number() })).mutation(async ({ ctx, input }) => { if (ctx.user.role !== "admin") throw new Error("Admin access required"); const safeName = input.filename.replace(/[^a-zA-Z0-9._-]/g, "-"); const buffer = Buffer.from(input.base64, "base64"); const uploaded = await storagePut(`visual-works/${input.target}/${input.id}-${Date.now()}-${safeName}`, buffer, input.contentType); if (input.target === "work") await setWorkImage(input.id, uploaded.url); else await setEntityImage(input.id, uploaded.url); return uploaded; }),
   }),
 });
 

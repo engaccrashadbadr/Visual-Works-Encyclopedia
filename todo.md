@@ -7,17 +7,17 @@
 - [x] Build work detail, character detail, unit detail, franchise order, comparison, and settings views.
 - [x] Add Arabic/English language switching, RTL support, dark/light theme, and accessible responsive layout.
 - [x] Add AI assistant UI and server procedure for questions, recommendations, and Arabic summary translation.
-- [ ] Add AniList and TMDB synchronization adapters and safe upsert/deduplication logic.
+- [x] Add AniList and TMDB synchronization adapters and safe upsert/deduplication logic.
 - [ ] Add periodic synchronization through the project heartbeat with an admin-visible sync status.
-- [ ] Add S3 image upload and metadata handling for works, characters, and units.
+- [x] Add S3 image upload and metadata handling for works, characters, and units.
 - [x] Add admin-only CRUD procedures and dashboard for works, characters, and units.
 - [x] Add vitest coverage for core database/query behavior and AI/sync validation paths.
 - [x] Run type checks, tests, build validation, and visual responsive verification.
 - [x] Enable AniList-only synchronization now, with TMDB adapter gated behind the optional TMDB_API_KEY secret.
 - [x] Add a dedicated franchise-order query with chronological and release-order views plus relationship labels.
-- [ ] Replace homepage prototype fallback cards with database-driven loading, empty, and error states.
+- [x] Replace homepage prototype fallback cards with database-driven loading, empty, and error states.
 - [x] Implement character, unit, comparison, and settings routes and wire all links.
 - [x] Create shared app-wide bilingual language and RTL state across all pages.
-- [ ] Expose Arabic summary translation and similar-title recommendations in the assistant UI.
-- [ ] Add Vitest coverage for catalog procedures, assistant procedure validation, and AniList sync error handling.
-- [ ] Gate the optional TMDB integration in code with TMDB_API_KEY and expose AniList sync status to admins.
+- [x] Expose Arabic summary translation and similar-title recommendations in the assistant UI.
+- [x] Add Vitest coverage for catalog procedures, assistant procedure validation, and AniList sync error handling.
+- [x] Gate the optional TMDB integration in code with TMDB_API_KEY and expose AniList sync status to admins.

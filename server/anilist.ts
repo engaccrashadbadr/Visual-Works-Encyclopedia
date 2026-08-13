@@ -1,5 +1,6 @@
 import { getDb } from "./db";
-import { works } from "../drizzle/schema";
+import { syncRuns, works } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 const ANILIST_ENDPOINT = "https://graphql.anilist.co";
 const query = `query ($page: Int, $perPage: Int) { Page(page: $page, perPage: $perPage) { pageInfo { hasNextPage } media(sort: POPULARITY_DESC, type: ANIME) { id title { romaji english native } type format startDate { year } studios(isMain: true) { nodes { name } } averageScore description episodes duration coverImage { extraLarge large } bannerImage genres popularity } } }`;
@@ -9,15 +10,23 @@ export function cleanHtml(value?: string) { return value?.replace(/<[^>]*>/g, ""
 export function mapType(format?: string): "anime" | "film" | "series" | "ova" | "animation" { if (format === "MOVIE") return "film"; if (format === "OVA" || format === "ONA") return "ova"; if (format === "SPECIAL") return "animation"; return "anime"; }
 
 export async function syncAniList(page = 1, perPage = 25) {
+  const db = await getDb(); if (!db) throw new Error("Database unavailable");
+  const run = await db.insert(syncRuns).values({ source: "anilist", status: "running", itemsProcessed: 0 }); const runId = Number(run[0].insertId);
+  try {
   const response = await fetch(ANILIST_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ query, variables: { page, perPage } }) });
   if (!response.ok) throw new Error(`AniList request failed: ${response.status}`);
   const json = await response.json() as { data?: { Page?: { pageInfo?: { hasNextPage?: boolean }; media?: AniMedia[] } } };
-  const media = json.data?.Page?.media || []; const db = await getDb(); if (!db) throw new Error("Database unavailable");
+  const media = json.data?.Page?.media || [];
   for (const item of media) {
     const title = item.title.english || item.title.romaji || item.title.native || `AniList #${item.id}`;
     const studio = item.studios?.nodes?.[0]?.name || null;
     const payload = { externalId: String(item.id), source: "anilist", title, titleAr: item.title.native || null, type: mapType(item.format), releaseYear: item.startDate?.year || null, studio, score: item.averageScore ? String((item.averageScore / 10).toFixed(2)) : null, summary: cleanHtml(item.description), episodeCount: item.episodes || null, durationMinutes: item.duration || null, coverImageUrl: item.coverImage?.extraLarge || item.coverImage?.large || null, bannerImageUrl: item.bannerImage || null, popularity: item.popularity || 0 };
     await db.insert(works).values(payload).onDuplicateKeyUpdate({ set: { ...payload, updatedAt: new Date() } });
   }
+  await db.update(syncRuns).set({ status: "success", itemsProcessed: media.length, finishedAt: new Date() }).where(eq(syncRuns.id, runId));
   return { source: "anilist", page, processed: media.length, hasNextPage: Boolean(json.data?.Page?.pageInfo?.hasNextPage) };
+  } catch (error) {
+    await db.update(syncRuns).set({ status: "failed", errorMessage: error instanceof Error ? error.message : "Unknown error", finishedAt: new Date() }).where(eq(syncRuns.id, runId));
+    throw error;
+  }
 }

@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { entities, franchises, InsertUser, universes, users, workEntities, workRelations, works } from "../drizzle/schema";
+import { entities, franchises, InsertUser, syncRuns, universes, users, workEntities, workRelations, works } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -59,4 +59,13 @@ export async function getEntityDetails(id: number) {
 
 export async function compareEntities(ids: number[]) { const db = await getDb(); if (!db || ids.length === 0) return []; return db.select().from(entities).where(or(...ids.slice(0, 2).map(id => eq(entities.id, id)))); }
 export async function listUniverses() { const db = await getDb(); if (!db) return []; return db.select().from(universes).orderBy(asc(universes.name)); }
+export async function createWork(input: any) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); const result = await db.insert(works).values(input); return { id: Number(result[0].insertId) }; }
+export async function updateWork(id: number, input: any) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); await db.update(works).set(input).where(eq(works.id, id)); return { success: true }; }
+export async function deleteWork(id: number) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); await db.delete(works).where(eq(works.id, id)); return { success: true }; }
+export async function createEntity(input: any) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); const result = await db.insert(entities).values(input); return { id: Number(result[0].insertId) }; }
+export async function updateEntity(id: number, input: any) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); await db.update(entities).set(input).where(eq(entities.id, id)); return { success: true }; }
+export async function deleteEntity(id: number) { const db = await getDb(); if (!db) throw new Error("Database unavailable"); await db.delete(entities).where(eq(entities.id, id)); return { success: true }; }
+export async function setWorkImage(id: number, url: string) { return updateWork(id, { coverImageUrl: url }); }
+export async function setEntityImage(id: number, url: string) { return updateEntity(id, { imageUrl: url }); }
+export async function getLatestSync(source = "anilist") { const db = await getDb(); if (!db) return null; return (await db.select().from(syncRuns).where(eq(syncRuns.source, source)).orderBy(desc(syncRuns.id)).limit(1))[0] || null; }
 export async function getFranchiseOrder(franchiseId: number, order: "chronological" | "release") { const db = await getDb(); if (!db) return []; const rows = await db.select({ relation: workRelations, work: works }).from(workRelations).innerJoin(works, eq(workRelations.toWorkId, works.id)).where(eq(works.franchiseId, franchiseId)); return rows.sort((a, b) => ((order === "chronological" ? a.relation.chronologicalOrder : a.relation.releaseOrder) ?? 999) - ((order === "chronological" ? b.relation.chronologicalOrder : b.relation.releaseOrder) ?? 999)).map(row => ({ ...row.work, relationType: row.relation.relationType, relationshipLabel: ({ sequel: "تكملة / Sequel", side_story: "قصة جانبية / Side story", remake: "إعادة إنتاج / Remake", reboot: "إعادة تشغيل / Reboot", prequel: "تمهيد / Prequel", spin_off: "عمل فرعي / Spin-off" } as Record<string, string>)[row.relation.relationType] })); }
