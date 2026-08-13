@@ -15,5 +15,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["server/**/*.test.ts", "server/**/*.spec.ts"],
+    pool: "forks",
+    maxWorkers: 1,
+    minWorkers: 1,
   },
 });

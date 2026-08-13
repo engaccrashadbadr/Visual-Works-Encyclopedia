@@ -35,3 +35,8 @@
 - [x] Confirm and test source-derived universe and relationship links beyond co-appearance counts.
 - [x] Add explicit Vitest coverage for import target counts, character/work persistence, relationship persistence, and substring search.
 - [x] Run and record explicit partial-name search verification for works and characters.
+- [x] Add a public interactive universe graph with world, work, character, and relationship nodes.
+- [x] Add graph data procedures with bounded queries and relationship labels for readable exploration.
+- [x] Add zoom, pan, node selection, filters, legend, and detail panel with responsive RTL support.
+- [x] Add tests for graph data shaping, public access, relationship labels, and empty/error states.
+- [x] Verify the interactive map visually and save a checkpoint.

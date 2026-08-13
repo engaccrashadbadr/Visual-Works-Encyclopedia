@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { entities, entityRelations, franchises, InsertUser, syncRuns, universes, users, workEntities, workRelations, works } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -68,6 +68,36 @@ export async function searchCatalog(q: string, limit = 30) {
   ]);
   return { works: workResults, characters: characterResults };
 }
+export async function getUniverseGraph(universeId?: number) {
+  const db = await getDb();
+  if (!db) return { universes: [], nodes: [], edges: [] };
+  const universeRows = await db.select().from(universes).orderBy(asc(universes.name)).limit(80);
+  const selectedUniverseId = universeId ?? universeRows[0]?.id;
+  if (!selectedUniverseId) return { universes: universeRows, nodes: [], edges: [] };
+  const workRows = await db.select().from(works).where(eq(works.universeId, selectedUniverseId)).orderBy(desc(works.popularity)).limit(80);
+  const workIds = workRows.map(work => work.id);
+  if (!workIds.length) return { universes: universeRows, nodes: [], edges: [] };
+  const appearanceRows = await db.select({ link: workEntities, entity: entities }).from(workEntities).innerJoin(entities, eq(workEntities.entityId, entities.id)).where(inArray(workEntities.workId, workIds)).limit(180);
+  const entityIds = appearanceRows.map(row => row.entity.id);
+  const relationRows = entityIds.length ? await db.select({ relation: entityRelations, entity: entities }).from(entityRelations).innerJoin(entities, eq(entityRelations.toEntityId, entities.id)).where(inArray(entityRelations.fromEntityId, entityIds)).limit(260) : [];
+  const selectedUniverse = universeRows.find(universe => universe.id === selectedUniverseId);
+  const nodes = [
+    ...(selectedUniverse ? [{ id: `universe-${selectedUniverse.id}`, kind: "universe" as const, refId: selectedUniverse.id, label: selectedUniverse.name, labelAr: selectedUniverse.nameAr, description: selectedUniverse.description }] : []),
+    ...workRows.map(work => ({ id: `work-${work.id}`, kind: "work" as const, refId: work.id, label: work.title, labelAr: work.titleAr, imageUrl: work.coverImageUrl, type: work.type, score: work.score })),
+    ...appearanceRows.map(row => ({ id: `entity-${row.entity.id}`, kind: row.entity.kind, refId: row.entity.id, label: row.entity.name, labelAr: row.entity.nameAr, imageUrl: row.entity.imageUrl, role: row.link.role, isMain: row.link.isMain })),
+    ...relationRows.map(row => ({ id: `relation-${row.relation.id}`, kind: "relation" as const, refId: row.relation.id, label: row.relation.label || row.relation.relationType, labelAr: row.relation.label || row.relation.relationType, relationType: row.relation.relationType })),
+  ];
+  const edges = [
+    ...(selectedUniverse ? workRows.map(work => ({ id: `universe-work-${selectedUniverse.id}-${work.id}`, source: `universe-${selectedUniverse.id}`, target: `work-${work.id}`, type: "universe_work", label: "universe_work" })) : []),
+    ...appearanceRows.map(row => ({ id: `appearance-${row.link.workId}-${row.link.entityId}`, source: `work-${row.link.workId}`, target: `entity-${row.entity.id}`, type: "appearance", label: row.link.role || "appearance" })),
+    ...relationRows.flatMap(row => [
+      { id: `relation-from-${row.relation.id}`, source: `entity-${row.relation.fromEntityId}`, target: `relation-${row.relation.id}`, type: row.relation.relationType, label: row.relation.label || row.relation.relationType },
+      { id: `relation-to-${row.relation.id}`, source: `relation-${row.relation.id}`, target: `entity-${row.entity.id}`, type: row.relation.relationType, label: row.relation.label || row.relation.relationType },
+    ]),
+  ];
+  return { universes: universeRows, selectedUniverseId, nodes, edges };
+}
+
 export async function getEntityRelations(id: number) {
   const db = await getDb(); if (!db) return [];
   return db.select({ relation: entityRelations, entity: entities }).from(entityRelations).innerJoin(entities, eq(entityRelations.toEntityId, entities.id)).where(eq(entityRelations.fromEntityId, id));

@@ -18,6 +18,18 @@ describe("public catalog access", () => {
     expect(result).toHaveProperty("characters");
   });
 
+  it("returns a public graph payload without an authenticated user", async () => {
+    const caller = appRouter.createCaller(publicContext());
+    const result = await caller.catalog.graph();
+    expect(result).toHaveProperty("universes");
+    expect(result).toHaveProperty("nodes");
+    expect(result).toHaveProperty("edges");
+    expect(result.nodes.some((node: any) => node.kind === "universe")).toBe(true);
+    expect(result.nodes.every((node: any) => typeof node.id === "string" && typeof node.kind === "string")).toBe(true);
+    expect(result.edges.every((edge: any) => typeof edge.source === "string" && typeof edge.target === "string" && typeof edge.type === "string")).toBe(true);
+    expect(result.edges.some((edge: any) => edge.type === "appearance" || edge.type === "universe_work")).toBe(true);
+  });
+
   it("keeps admin status protected without an authenticated user", async () => {
     const caller = appRouter.createCaller(publicContext());
     await expect(caller.admin.status()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
