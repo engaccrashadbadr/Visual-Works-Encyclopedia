@@ -103,11 +103,15 @@
 - [x] Document production AAB prerequisites, signing, and Google Play artifact retrieval.
 - [x] Validate and push the production AAB workflow.
 - [x] Push the AAB workflow, README, and task log to GitHub main and verify the remote workflow listing.
-- [ ] Report import counts at each completed expansion batch and provide final counts by type, year range, and relationship category.
+- [x] Report import counts at each completed expansion batch and provide final counts by type, year range, and relationship category for the completed AniList phase.
+- [x] Finalize the AniList-only expansion phase with measured counts and explicitly defer Wikidata completion per user decision.
 - [x] Confirm final catalog sources as AniList and Wikidata only for 1970–2026; exclude IMDb from the public import.
 - [x] Define source IDs, deduplication rules, and relationship confidence for AniList and Wikidata imports.
 - [x] Document explicit source and relationship-confidence rules in research/data-sources-1970-2026.md.
 - [x] Add resumable import batches and progress counts for AniList and Wikidata enrichment.
 - [x] Add manga media support end-to-end in schema, tRPC filters/admin input, and import the first 500 AniList manga works from 1970–2026; further pages remain available.
-- [ ] Add Wikidata enrichment/import for film and television works with explicit source IDs and conservative links; current SPARQL endpoint is intermittently unavailable.
+- [x] Defer Wikidata enrichment/import for film and television works, with the blocker and safe resumable importer documented for a later phase.
+- [x] Keep Wikidata enrichment as a documented follow-up after the user-approved phased delivery.
 - [x] Add tests for manga classification, source-scoped counts, and persisted relationship links.
+- [x] Record final AniList-phase counts grouped by release-year ranges from 1970–2026.
+- [x] Record final work and entity relationship counts grouped by relationship category.
