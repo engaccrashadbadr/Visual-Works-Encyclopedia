@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trpc } from "@/lib/trpc";
+import { filterMapGraph, toggleMapFilter } from "@shared/mapFilters";
 
 const relationLabels: Record<string, { ar: string; en: string }> = {
   appearance: { ar: "ظهور في العمل", en: "Appears in work" },
@@ -27,14 +28,16 @@ export default function UniverseMapPage() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [selected, setSelected] = useState<any>(null);
+  const [enabledKinds, setEnabledKinds] = useState<string[]>([]);
+  const [enabledRelations, setEnabledRelations] = useState<string[]>([]);
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const { data, isLoading, isError } = trpc.catalog.graph.useQuery(universeId ? { universeId } : undefined);
   const universes = data?.universes ?? [];
   const nodes = (data?.nodes ?? []) as any[];
   const edges = (data?.edges ?? []) as any[];
-  const visibleNodes = useMemo(() => nodes.filter(node => !query || `${node.label} ${node.labelAr || ""}`.toLowerCase().includes(query.toLowerCase())), [nodes, query]);
-  const visibleIds = new Set(visibleNodes.map(node => node.id));
-  const visibleEdges = edges.filter(edge => visibleIds.has(edge.source) && visibleIds.has(edge.target));
+  const kindOptions = useMemo(() => Array.from(new Set(nodes.map(node => node.kind))), [nodes]);
+  const relationOptions = useMemo(() => Array.from(new Set(edges.map(edge => edge.type))), [edges]);
+  const { visibleNodes, visibleEdges } = useMemo(() => filterMapGraph(nodes, edges, enabledKinds, enabledRelations, query), [nodes, edges, enabledKinds, enabledRelations, query]);
   const universesNodes = visibleNodes.filter(node => node.kind === "universe");
   const works = visibleNodes.filter(node => node.kind === "work");
   const relations = visibleNodes.filter(node => node.kind === "relation");
@@ -50,7 +53,10 @@ export default function UniverseMapPage() {
   const beginDrag = (event: React.PointerEvent<HTMLDivElement>) => { if (event.button !== 0) return; dragRef.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y }; event.currentTarget.setPointerCapture(event.pointerId); };
   const moveDrag = (event: React.PointerEvent<HTMLDivElement>) => { const start = dragRef.current; if (!start) return; setPan({ x: start.panX + event.clientX - start.x, y: start.panY + event.clientY - start.y }); };
   const endDrag = () => { dragRef.current = null; };
-  const kindLabel = (kind: string) => kind === "work" ? (ar ? "عمل" : "Work") : kind === "universe" ? (ar ? "عالم" : "Universe") : kind === "relation" ? (ar ? "علاقة" : "Relationship") : (ar ? "شخصية" : "Character");
+  const kindLabel = (kind: string) => kind === "work" ? (ar ? "عمل" : "Work") : kind === "universe" ? (ar ? "عالم" : "Universe") : kind === "relation" ? (ar ? "علاقة" : "Relationship") : kind === "character" ? (ar ? "شخصية" : "Character") : kind;
+  const relationLabel = (type: string) => relationLabels[type]?.[ar ? "ar" : "en"] || type.replaceAll("_", " ");
+  const toggleFilter = (value: string, values: string[], allValues: string[], setter: (next: string[]) => void) => setter(toggleMapFilter(value, values, allValues));
+  const resetFilters = () => { setEnabledKinds([]); setEnabledRelations([]); setQuery(""); setSelected(null); };
 
   return <main className="min-h-screen bg-background text-foreground pb-16">
     <header className="container pt-8 pb-6">
@@ -63,6 +69,17 @@ export default function UniverseMapPage() {
         <div className="relative"><Search className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" /><Input value={query} onChange={e => setQuery(e.target.value)} className="ps-10 h-11" placeholder={ar ? "ابحث داخل الخريطة باسم عمل أو شخصية..." : "Search this map by work or character..."} /></div>
         <div className="relative"><select aria-label={ar ? "اختر العالم" : "Choose universe"} value={data?.selectedUniverseId ?? ""} onChange={e => { setUniverseId(Number(e.target.value)); setPan({ x: 0, y: 0 }); setSelected(null); }} className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="">{ar ? "اختر عالماً" : "Choose a universe"}</option>{universes.map((u: any) => <option key={u.id} value={u.id}>{ar ? (u.nameAr || u.name) : u.name}</option>)}</select><ChevronDown className="pointer-events-none absolute end-3 top-3 h-4 w-4 text-muted-foreground" /></div>
       </div>
+      <Card className="mt-3 border-primary/15 bg-card/50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><p className="text-sm font-bold">{ar ? "فلاتر الاستكشاف" : "Exploration filters"}</p><p className="text-xs text-muted-foreground">{ar ? "اختر أنواع العقد والعلاقات التي تريد إبقاءها ظاهرة." : "Choose the node and relationship types to keep visible."}</p></div>
+          <Button size="sm" variant="outline" onClick={resetFilters}>{ar ? "مسح الفلاتر" : "Clear filters"}</Button>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{ar ? "أنواع العقد" : "Node types"}</p><div className="flex flex-wrap gap-2">{kindOptions.map(kind => <button key={kind} type="button" aria-pressed={!enabledKinds.length || enabledKinds.includes(kind)} onClick={() => toggleFilter(kind, enabledKinds, kindOptions, setEnabledKinds)} className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${!enabledKinds.length || enabledKinds.includes(kind) ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground opacity-60"}`}>{kindLabel(kind)}</button>)}</div></div>
+          <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{ar ? "أنواع العلاقات" : "Relationship types"}</p><div className="flex flex-wrap gap-2">{relationOptions.map(type => <button key={type} type="button" aria-pressed={!enabledRelations.length || enabledRelations.includes(type)} onClick={() => toggleFilter(type, enabledRelations, relationOptions, setEnabledRelations)} className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${!enabledRelations.length || enabledRelations.includes(type) ? "border-violet-400 bg-violet-400/15 text-foreground" : "border-border text-muted-foreground opacity-60"}`}>{relationLabel(type)}</button>)}</div></div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">{ar ? `${visibleNodes.length} عقدة و${visibleEdges.length} علاقة ظاهرة` : `${visibleNodes.length} nodes and ${visibleEdges.length} relationships visible`}</p>
+      </Card>
     </header>
     <section className="container grid xl:grid-cols-[1fr_320px] gap-5">
       <Card className="relative overflow-hidden border-primary/20 bg-card/70 min-h-[620px]">

@@ -40,3 +40,11 @@
 - [x] Add zoom, pan, node selection, filters, legend, and detail panel with responsive RTL support.
 - [x] Add tests for graph data shaping, public access, relationship labels, and empty/error states.
 - [x] Verify the interactive map visually and save a checkpoint.
+- [x] Add advanced map filters for node kinds and relationship types.
+- [x] Add bilingual responsive filter controls with clear/reset behavior.
+- [x] Test filter shaping, empty states, and visual usability on desktop/mobile.
+- [x] Fix first-click deselection behavior for node-kind and relationship filter chips.
+- [x] Add automated tests for filter toggling and filtered empty-state behavior.
+- [x] Re-run desktop and mobile verification after the filter interaction fix.
+- [x] Wire shared map filter tests into the Vitest include paths and confirm the suite count increases.
+- [x] Test deselecting the final active filter chip behavior.
