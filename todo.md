@@ -119,6 +119,9 @@
 - [x] Verify APK and AAB workflows produce installable/store-ready Android artifacts with the current mobile configuration; local validation passed, while actual EAS artifacts require EXPO_TOKEN in GitHub.
 - [x] Push cover and workflow updates to GitHub and verify the remote commit/workflows.
 - [x] Run final project checks, push the latest updates to GitHub main, and verify the remote commit.
-- [ ] Trigger the production AAB GitHub Actions workflow for internal Google Play testing.
-- [ ] Monitor the AAB run and verify the downloadable artifact or report the exact blocking secret/signing error.
-- [ ] Fix the AAB/APK workflow pnpm setup mismatch reported by GitHub Actions and rerun the AAB build.
+- [x] Trigger the production AAB GitHub Actions workflow for internal Google Play testing; run 31736781767 started successfully.
+- [x] Monitor the AAB run and report the exact blocker: EAS requires an Expo account token and `EXPO_TOKEN` is empty in GitHub Actions.
+- [x] Fix the AAB/APK workflow pnpm setup mismatch reported by GitHub Actions and rerun the AAB build; pnpm setup and Expo configuration now pass.
+- [ ] Add `EXPO_TOKEN` to GitHub Secrets and rerun the production AAB workflow to produce the Google Play internal-testing artifact.
+- [ ] Diagnose the latest AAB workflow failure, fix the root cause, and rerun the build.
+- [x] Attempt a direct EAS cloud AAB build with the user-provided Expo token as a fallback; the local pnpm wrapper entered an interactive package prompt, so no artifact was produced.
